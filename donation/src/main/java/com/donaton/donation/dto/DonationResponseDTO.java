@@ -1,4 +1,4 @@
 package com.donaton.donation.dto;
 
-public class DonationDTO {
+public class DonationResponseDTO {
 }

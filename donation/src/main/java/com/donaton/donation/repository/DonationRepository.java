@@ -1,4 +1,8 @@
 package com.donaton.donation.repository;
 
-public class DonationRepository {
+import com.donaton.donation.model.DonationModel;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface DonationRepository
+        extends JpaRepository<DonationModel, Long> {
 }
