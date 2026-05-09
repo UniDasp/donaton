@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -16,7 +15,6 @@ import reactor.core.publisher.Mono;
 import java.time.LocalDateTime;
 
 @Slf4j
-@Component
 public class JwtAuthenticationFilter implements WebFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -31,7 +29,6 @@ public class JwtAuthenticationFilter implements WebFilter {
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().toString();
 
-        // Rutas públicas - sin validación
         if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
@@ -56,7 +53,6 @@ public class JwtAuthenticationFilter implements WebFilter {
 
             log.info("Usuario autenticado: {} con rol: {}", email, role);
 
-            // Pasar información del usuario al siguiente servicio mediante headers
             ServerWebExchange newExchange = exchange.mutate()
                     .request(r -> r.header("X-User-Email", email)
                             .header("X-User-Role", role))
