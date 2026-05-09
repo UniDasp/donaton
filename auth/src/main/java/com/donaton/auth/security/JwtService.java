@@ -5,15 +5,16 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.util.Date;
-import javax.crypto.SecretKey;
 
 @Service
 public class JwtService {
 
-    private final String SECRET_KEY = "mi_clave_secreta_muy_larga_para_hs256_segura_12345";
+    private static final String SECRET_KEY =
+            "mi_clave_secreta_muy_larga_para_hs256_segura_12345";
 
-    private SecretKey getSigningKey() {
+    private Key getSigningKey() {
         return Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -22,8 +23,8 @@ public class JwtService {
         return Jwts.builder()
                 .subject(email)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 86400000))
-                .signWith(getSigningKey())
+                .expiration(new Date(System.currentTimeMillis() + 86400000)) // 1 día
+                .signWith(getSigningKey()) // 👈 forma correcta en 0.12.x
                 .compact();
     }
 }
