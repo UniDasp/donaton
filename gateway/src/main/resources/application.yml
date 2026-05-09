@@ -15,23 +15,23 @@ spring:
                 - Path=/auth/**
 
             - id: donation
-              uri: http://donation:8080
+              uri: http://donation:8081
               predicates:
                 - Path=/donation/**
 
             - id: logistics
-              uri: http://logistics:8080
+              uri: http://logistics:8082
               predicates:
                 - Path=/logistics/**
 
             - id: needs
-              uri: http://needs:8080
+              uri: http://needs:8083
               predicates:
                 - Path=/needs/**
 
           globalcors:
             cors-configurations:
-              '[/**]':
+              "[/**]":
                 allowedOrigins:
                   - "*"
                 allowedMethods:
@@ -43,3 +43,7 @@ spring:
                 allowedHeaders:
                   - "*"
                 allowCredentials: false
+
+jwt:
+  secret: mi_clave_secreta_muy_segura_para_produccion
+  expiration: 86400000
