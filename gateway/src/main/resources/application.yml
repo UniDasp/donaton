@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: auth
+              uri: http://auth:8080
+              predicates:
+                - Path=/auth/**
+
+            - id: donation
+              uri: http://donation:8080
+              predicates:
+                - Path=/donation/**
+
+            - id: logistics
+              uri: http://logistics:8080
+              predicates:
+                - Path=/logistics/**
+
+            - id: needs
+              uri: http://needs:8080
+              predicates:
+                - Path=/needs/**
+
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  - "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                allowedHeaders:
+                  - "*"
+                allowCredentials: false

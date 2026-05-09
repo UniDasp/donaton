@@ -53,4 +53,11 @@ public class DonationService {
                         )
                 );
     }
+
+    public DonationModel actualizar(Long id, DonationModel donation) {
+        return donation;
+    }
+
+    public void eliminar(Long id) {
+    }
 }

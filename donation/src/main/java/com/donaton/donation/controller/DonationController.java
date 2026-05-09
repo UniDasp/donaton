@@ -34,4 +34,27 @@ public class DonationController {
     ) {
         return service.buscarPorId(id);
     }
+
+    @PutMapping("/{id}")
+    public DonationModel actualizar(
+            @PathVariable Long id,
+            @RequestBody DonationModel donation
+    ) {
+        return service.actualizar(id, donation);
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminar(
+            @PathVariable Long id
+    ) {
+        service.eliminar(id);
+    }
+
+
+
+
+
+
+
+
 }

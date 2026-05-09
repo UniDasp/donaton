@@ -1,0 +1,136 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: 'postgres:15'
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_PASSWORD: secret
+      POSTGRES_USER: myuser
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - donaton_network
+
+  rabbitmq:
+    image: 'rabbitmq:3.13-management'
+    environment:
+      RABBITMQ_DEFAULT_USER: myuser
+      RABBITMQ_DEFAULT_PASS: secret
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - donaton_network
+
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - '8081:8080'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: myuser
+      SPRING_RABBITMQ_PASSWORD: secret
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - donaton_network
+    restart: on-failure
+
+  donation:
+    build:
+      context: ./donation
+      dockerfile: Dockerfile
+    container_name: donation-service
+    ports:
+      - '8082:8080'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: myuser
+      SPRING_RABBITMQ_PASSWORD: secret
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - donaton_network
+    restart: on-failure
+
+  gateway:
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    ports:
+      - '8080:8080'
+    depends_on:
+      - auth
+      - donation
+      - logistics
+      - needs
+    networks:
+      - donaton_network
+    restart: on-failure
+
+  logistics:
+    build:
+      context: ./logistics
+      dockerfile: Dockerfile
+    container_name: logistics-service
+    ports:
+      - '8083:8080'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: myuser
+      SPRING_RABBITMQ_PASSWORD: secret
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - donaton_network
+    restart: on-failure
+
+  needs:
+    build:
+      context: ./needs
+      dockerfile: Dockerfile
+    container_name: needs-service
+    ports:
+      - '8084:8080'
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: secret
+      SPRING_RABBITMQ_HOST: rabbitmq
+      SPRING_RABBITMQ_USERNAME: myuser
+      SPRING_RABBITMQ_PASSWORD: secret
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - donaton_network
+    restart: on-failure
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  donaton_network:
+    driver: bridge

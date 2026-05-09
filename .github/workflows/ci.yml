@@ -12,7 +12,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [auth, donation, logistics, needs]
+        service: [auth, donation, logistics, needs, gateway]
 
     steps:
       - uses: actions/checkout@v4
