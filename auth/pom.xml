@@ -46,6 +46,13 @@
             <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
         </dependency>
 
+        <!-- 🔹 POSTGRES DRIVER (runtime) -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- 🔹 H2 (IMPORTANTE PARA TEST/CI) -->
         <dependency>
             <groupId>com.h2database</groupId>
@@ -57,7 +64,7 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.30</version>
+            <version>1.18.46</version>
             <scope>provided</scope>
         </dependency>
 
@@ -117,7 +124,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.30</version>
+                            <version>1.18.46</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
