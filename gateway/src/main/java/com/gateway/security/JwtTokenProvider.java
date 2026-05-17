@@ -14,11 +14,13 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
 
-    @Value("${jwt.secret:mi_clave_secreta_muy_segura}")
+    @Value("${jwt.secret:mi_clave_secreta_muy_larga_para_hs256_segura_12345}")
     private String jwtSecret;
 
     @Value("${jwt.expiration:86400000}")
     private long jwtExpirationMs;
+
+    private static final String TOKEN_TYPE_ACCESS = "ACCESS";
 
     private SecretKey getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
@@ -57,11 +59,12 @@ public class JwtTokenProvider {
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
+            var claims = Jwts.parser()
                     .verifyWith(getSigningKey())
                     .build()
-                    .parseSignedClaims(token);
-            return true;
+                    .parseSignedClaims(token)
+                    .getPayload();
+            return TOKEN_TYPE_ACCESS.equals(claims.get("token_type", String.class));
         } catch (ExpiredJwtException e) {
             log.warn("Token expirado");
             return false;

@@ -105,6 +105,7 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     private boolean isPublicPath(String path) {
         return path.equals("/auth/login") || 
-               path.equals("/auth/register");
+               path.equals("/auth/register") ||
+               path.equals("/auth/refresh");
     }
 }

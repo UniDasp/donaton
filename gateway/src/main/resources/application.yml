@@ -21,6 +21,11 @@ spring:
               filters:
                 - RewritePath=/donation(?<segment>/?.*), /donations${segment}
 
+            - id: donations-alias
+              uri: http://donation:8080
+              predicates:
+                - Path=/donations/**
+
             - id: logistics
               uri: http://logistics:8080
               predicates:
@@ -49,5 +54,5 @@ spring:
                 allowCredentials: false
 
 jwt:
-  secret: mi_clave_secreta_muy_segura_para_produccion
+  secret: mi_clave_secreta_muy_larga_para_hs256_segura_12345
   expiration: 86400000

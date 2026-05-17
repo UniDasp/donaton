@@ -1,6 +1,8 @@
 package com.donaton.auth.controller;
 
 import com.donaton.auth.dto.AuthDTO;
+import com.donaton.auth.dto.RefreshTokenDTO;
+import com.donaton.auth.dto.TokenResponseDTO;
 import com.donaton.auth.model.User;
 import com.donaton.auth.service.UserService;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +23,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody AuthDTO dto) {
-        return service.login(dto.getEmail(), dto.getPassword()).toString();
+    public TokenResponseDTO login(@RequestBody AuthDTO dto) {
+        return service.login(dto.getEmail(), dto.getPassword());
+    }
+
+    @PostMapping("/refresh")
+    public TokenResponseDTO refresh(@RequestBody RefreshTokenDTO dto) {
+        return service.refresh(dto.getRefreshToken());
     }
 }
