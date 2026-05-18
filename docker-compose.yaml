@@ -29,7 +29,7 @@ services:
 
   auth:
     build:
-      context: ./auth
+      context: ./microservicios/auth
       dockerfile: Dockerfile
     container_name: auth-service
     ports:
@@ -52,7 +52,7 @@ services:
 
   donation:
     build:
-      context: ./donation
+      context: ./microservicios/donation
       dockerfile: Dockerfile
     container_name: donation-service
     ports:
@@ -74,7 +74,7 @@ services:
 
   gateway:
     build:
-      context: ./gateway
+      context: ./microservicios/gateway
       dockerfile: Dockerfile
     container_name: gateway-service
     ports:
@@ -92,7 +92,7 @@ services:
 
   logistics:
     build:
-      context: ./logistics
+      context: ./microservicios/logistics
       dockerfile: Dockerfile
     container_name: logistics-service
     ports:
@@ -114,7 +114,7 @@ services:
 
   needs:
     build:
-      context: ./needs
+      context: ./microservicios/needs
       dockerfile: Dockerfile
     container_name: needs-service
     ports:
