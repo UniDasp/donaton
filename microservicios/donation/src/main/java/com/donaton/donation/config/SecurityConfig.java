@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
@@ -28,7 +29,9 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()
+                .requestMatchers(HttpMethod.PUT, "/donations/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/donations/**").hasRole("ADMIN")
+                .anyRequest().authenticated()
                 )
                 .addFilterBefore(gatewayAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 

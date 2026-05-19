@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -24,9 +25,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated()
+                .requestMatchers(HttpMethod.POST, "/needs/**").hasAnyRole("ADMIN", "ONG")
+                .requestMatchers(HttpMethod.PUT, "/needs/*/receive").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/needs/*/rollback").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/needs/**").hasAnyRole("ADMIN", "ONG")
+                .requestMatchers(HttpMethod.DELETE, "/needs/**").hasAnyRole("ADMIN", "ONG")
+                .anyRequest().authenticated()
                 )
                 .addFilterBefore(gatewayAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 

@@ -18,9 +18,11 @@ public class DonationController {
 
     @PostMapping
     public DonationModel crear(
-            @RequestBody DonationModel donation
+            @RequestBody DonationModel donation,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
     ) {
-        return service.crear(donation);
+        return service.crear(donation, email, role);
     }
 
     @GetMapping
