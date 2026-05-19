@@ -14,34 +14,10 @@ spring:
               predicates:
                 - Path=/auth/**
 
-            - id: donation
-              uri: http://donation:8080
+            - id: bff
+              uri: http://bff:8081
               predicates:
-                - Path=/donation/**
-              filters:
-                - RewritePath=/donation(?<segment>/?.*), /donations${segment}
-
-            - id: donations-alias
-              uri: http://donation:8080
-              predicates:
-                - Path=/donations/**
-
-            - id: logistics
-              uri: http://logistics:8080
-              predicates:
-                - Path=/logistics/**
-              filters:
-                - RewritePath=/logistics(?<segment>/?.*), /envios${segment}
-
-            - id: envios
-              uri: http://logistics:8080
-              predicates:
-                - Path=/envios/**
-
-            - id: needs
-              uri: http://needs:8080
-              predicates:
-                - Path=/needs/**
+                - Path=/bff/**
 
           globalcors:
             cors-configurations:

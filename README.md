@@ -3,9 +3,8 @@
 
 ### Repositorios del proyecto
 
-* **Frontend:**
+- **Frontend:**
   [https://github.com/UniDasp/donaton-project](https://github.com/UniDasp/donaton-project)
 
-* **BFF (Backend for Frontend):**
+- **BFF (Backend for Frontend):**
   [https://github.com/UniDasp/donaton-project-bff](https://github.com/UniDasp/donaton-project-bff)
-

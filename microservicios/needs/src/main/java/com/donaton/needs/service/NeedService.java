@@ -39,7 +39,7 @@ public class NeedService {
         if (createdByEmail != null && !createdByEmail.isBlank()) {
             need.setCreatedByEmail(createdByEmail.trim());
         }
-        // Ensure defaults
+        
         if (need.getQuantityReceived() == null) need.setQuantityReceived(0.0);
         if (need.getMatchedDonations() == null) need.setMatchedDonations(0);
         return repository.save(need);
@@ -66,7 +66,7 @@ public class NeedService {
         existing.setDeadline(update.getDeadline());
         existing.setVerifiedBy(update.getVerifiedBy());
 
-        // quantityReceived & matchedDonations are handled by receive()
+        
         return repository.save(existing);
     }
 
