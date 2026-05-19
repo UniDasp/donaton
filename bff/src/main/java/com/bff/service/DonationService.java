@@ -9,7 +9,6 @@ import com.bff.dto.response.DonationResponse;
 import com.bff.dto.response.LogisticsResponse;
 import com.bff.dto.response.NeedsResponse;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -46,7 +45,6 @@ public class DonationService {
     }
 
   
-    @Transactional
     public DonationResponse create(DonationRequest request) {
         logger.info("Iniciando creación de donación para necesidad: " + request.getNeedId());
 
@@ -61,7 +59,7 @@ public class DonationService {
             logger.info("Cantidad recibida actualizada en necesidad");
 
             LogisticsRequest logisticsRequest = new LogisticsRequest();
-            logisticsRequest.setDonationId(donation.getId());
+            logisticsRequest.setDonacionId(donation.getId());
             
             LogisticsResponse logistics = logisticsClient.create(logisticsRequest);
             logger.info("Envío logístico creado con ID: " + logistics.getId());
