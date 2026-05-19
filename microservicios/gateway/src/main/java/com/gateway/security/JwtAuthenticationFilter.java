@@ -25,6 +25,7 @@ public class JwtAuthenticationFilter implements WebFilter {
         this.objectMapper = new ObjectMapper();
     }
 
+
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().toString();
@@ -32,50 +33,53 @@ public class JwtAuthenticationFilter implements WebFilter {
                 ? ""
                 : exchange.getRequest().getMethod().name();
 
-        if ("OPTIONS".equalsIgnoreCase(method) || isPublicPath(path)) {
-            return chain.filter(exchange);
-        }
+        log.debug("[JWT-FILTER] Validando token - {} {}", method, path);
 
         try {
-            String token = getTokenFromRequest(exchange);
+            String token = extractTokenFromRequest(exchange);
 
             if (token == null || token.isEmpty()) {
-                log.warn("Token no proporcionado para ruta: {}", path);
+                log.warn("[JWT-FILTER]  Token no proporcionado - {}", path);
                 return sendErrorResponse(exchange, HttpStatus.UNAUTHORIZED, 
-                        "Token no proporcionado", path);
+                        "Token no proporcionado");
             }
 
             if (!jwtTokenProvider.validateToken(token)) {
-                log.warn("Token inválido para ruta: {}", path);
+                log.warn("[JWT-FILTER]  Token inválido o expirado - {}", path);
                 return sendErrorResponse(exchange, HttpStatus.UNAUTHORIZED, 
-                        "Token inválido o expirado", path);
+                        "Token inválido o expirado");
             }
 
             String email = jwtTokenProvider.extractEmail(token);
             String role = jwtTokenProvider.extractRole(token);
 
-            log.info("Usuario autenticado: {} con rol: {}", email, role);
+            log.info("[JWT-FILTER] Autenticación exitosa - Usuario: {} | Rol: {} | Ruta: {}", 
+                    email, role, path);
 
-            ServerWebExchange newExchange = exchange.mutate()
-                    .request(r -> r.header("X-User-Email", email)
-                            .header("X-User-Role", role))
+          ServerWebExchange enrichedExchange = exchange.mutate()
+                    .request(r -> r
+                            .header("Authorization", "Bearer " + token)      
+                            .header("X-User-Email", email)                   
+                            .header("X-User-Role", role))                    
                     .build();
 
-            return chain.filter(newExchange);
+            log.debug("[JWT-FILTER] ✓ Petición autorizada - delegando a siguiente etapa");
+            return chain.filter(enrichedExchange);
 
         } catch (JwtException e) {
-            log.error("Error de JWT: {}", e.getMessage());
+            log.error("[JWT-FILTER]  Error JWT: {}", e.getMessage());
             return sendErrorResponse(exchange, HttpStatus.UNAUTHORIZED, 
-                    e.getMessage(), path);
+                    "Token inválido: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Error inesperado en autenticación: {}", e.getMessage());
+            log.error("[JWT-FILTER]  Error inesperado: {}", e.getMessage(), e);
             return sendErrorResponse(exchange, HttpStatus.INTERNAL_SERVER_ERROR, 
-                    "Error interno del servidor", path);
+                    "Error interno del servidor");
         }
     }
 
+    
     private Mono<Void> sendErrorResponse(ServerWebExchange exchange, HttpStatus status, 
-                                        String message, String path) {
+                                        String message) {
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
@@ -84,7 +88,7 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .error(status.getReasonPhrase())
                 .message(message)
                 .timestamp(LocalDateTime.now())
-                .path(path)
+                .path(exchange.getRequest().getPath().toString())
                 .build();
 
         try {
@@ -93,31 +97,22 @@ public class JwtAuthenticationFilter implements WebFilter {
                     Mono.fromCallable(() -> exchange.getResponse().bufferFactory().wrap(bytes))
             );
         } catch (Exception e) {
-            log.error("Error serializando respuesta de error", e);
+            log.error("[JWT-FILTER] Error serializando respuesta de error", e);
             return exchange.getResponse().setComplete();
         }
     }
 
-    private String getTokenFromRequest(ServerWebExchange exchange) {
+   
+    private String extractTokenFromRequest(ServerWebExchange exchange) {
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+        
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
+            String token = authHeader.substring(7); 
+            log.debug("[JWT-FILTER] Token extraído del header Authorization");
+            return token;
         }
+        
+        log.debug("[JWT-FILTER] Header Authorization no encontrado o formato incorrecto");
         return null;
-    }
-
-    private boolean isPublicPath(String path) {
-        if (path == null || path.isBlank()) return false;
-
-        String normalized = path.endsWith("/") && path.length() > 1
-            ? path.substring(0, path.length() - 1)
-            : path;
-
-        return normalized.equals("/auth/login")
-            || normalized.equals("/auth/register")
-            || normalized.equals("/auth/refresh")
-            || normalized.equals("/api/auth/login")
-            || normalized.equals("/api/auth/register")
-            || normalized.equals("/api/auth/refresh");
     }
 }

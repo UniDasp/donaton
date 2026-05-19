@@ -6,9 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.web.server.WebFilter;
+import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
 @Slf4j
 @Configuration
@@ -21,11 +22,20 @@ public class SecurityConfig {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
+    
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
+        log.info("[GATEWAY] Inicializando cadena de filtros de seguridad perimetral");
+        
         return http
-                .csrf().disable()
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(basic -> basic.disable())
+                .formLogin(form -> form.disable())
+                .logout(logout -> logout.disable())
+                
                 .authorizeExchange(authz -> authz
+                    
+                    
                     .pathMatchers(
                             "/auth/login",
                             "/auth/register",
@@ -34,19 +44,25 @@ public class SecurityConfig {
                             "/api/auth/register",
                             "/api/auth/refresh",
                             "/health",
-                            "/actuator/health"
+                            "/actuator/health",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**"
                     ).permitAll()
-                    .anyExchange().permitAll())
-                .httpBasic().disable()
-                .formLogin().disable()
-                .logout().disable()
+                   .anyExchange().authenticated()
+                )
+                
+                .addFilterAt(
+                    new JwtAuthenticationFilter(jwtTokenProvider),
+                    SecurityWebFiltersOrder.AUTHENTICATION
+                )
+                
+                
+                
+                .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
+                
                 .build();
     }
-
-    @Bean
-    public WebFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
-    }
 }
+
 
 

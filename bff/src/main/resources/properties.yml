@@ -1,9 +1,9 @@
 server:
-  port: 8090
+  port: 8081
 
 spring:
   application:
-    name: donaton-bff
+    name: bff
 
   profiles:
     active: local
@@ -58,7 +58,6 @@ spring:
             url: http://localhost:8083
           needs-service:
             url: http://localhost:8084
-
 ---
 spring:
   config:

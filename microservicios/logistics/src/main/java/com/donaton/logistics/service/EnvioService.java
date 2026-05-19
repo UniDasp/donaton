@@ -116,7 +116,7 @@ public class EnvioService {
                 try {
                     needsClient.rollbackReceive(envio.getNeedId(), envio.getCantidadDonada());
                 } catch (RuntimeException ignored) {
-                    // best-effort rollback
+                    
                 }
             }
             count++;
