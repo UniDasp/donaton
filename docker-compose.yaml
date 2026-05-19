@@ -22,160 +22,120 @@ services:
   postgres:
     image: postgres:15
     container_name: postgres-db
-
     environment:
       POSTGRES_DB: mydatabase
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: secret
-
     ports:
       - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U myuser -d mydatabase"]
       interval: 5s
       timeout: 5s
       retries: 10
-
     networks:
       - donaton_network
-
     restart: unless-stopped
 
   rabbitmq:
     image: rabbitmq:3.13-management
     container_name: rabbitmq
-
     environment:
       RABBITMQ_DEFAULT_USER: myuser
       RABBITMQ_DEFAULT_PASS: secret
-
     ports:
       - "5672:5672"
       - "15672:15672"
-
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 10
-
     networks:
       - donaton_network
-
     restart: unless-stopped
 
   auth:
     build:
       context: ./microservicios/auth
-
     container_name: auth-service
-
     ports:
       - "8081:8080"
-
     environment:
       <<: *spring-env
       JWT_SECRET: mi_clave_secreta_muy_larga_para_hs256_segura_12345
-
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
     networks:
       - donaton_network
-
     restart: unless-stopped
 
   donation:
     build:
       context: ./microservicios/donation
-
     container_name: donation-service
-
     ports:
       - "8082:8080"
-
     environment:
       <<: *spring-env
-
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
     networks:
       - donaton_network
-
     restart: unless-stopped
 
   logistics:
     build:
       context: ./microservicios/logistics
-
     container_name: logistics-service
-
     ports:
       - "8083:8080"
-
     environment:
       <<: *spring-env
-
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
     networks:
       - donaton_network
-
     restart: unless-stopped
 
   needs:
     build:
       context: ./microservicios/needs
-
     container_name: needs-service
-
     ports:
       - "8084:8080"
-
     environment:
       <<: *spring-env
-
     depends_on:
       postgres:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
     networks:
       - donaton_network
-
     restart: unless-stopped
 
   gateway:
     build:
       context: ./microservicios/gateway
-
     container_name: gateway-service
-
     ports:
       - "8080:8080"
-
     environment:
       JWT_SECRET: mi_clave_secreta_muy_larga_para_hs256_segura_12345
-
     depends_on:
       auth:
         condition: service_started
@@ -185,10 +145,40 @@ services:
         condition: service_started
       needs:
         condition: service_started
-
     networks:
       - donaton_network
+    restart: unless-stopped
 
+  bff:
+    build:
+      context: ./bff
+    container_name: bff-service
+    ports:
+      - "8085:8080"
+    environment:
+      <<: *spring-env
+      JWT_SECRET: mi_clave_secreta_muy_larga_para_hs256_segura_12345
+      GATEWAY_URL: http://gateway:8080 
+    depends_on:
+      gateway:
+        condition: service_started
+    networks:
+      - donaton_network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend-app
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://localhost:8085 
+    depends_on:
+      bff:
+        condition: service_started
+    networks:
+      - donaton_network
     restart: unless-stopped
 
 volumes:
