@@ -11,6 +11,9 @@ import java.util.Map;
 @Component
 public class LogisticsClient {
 
+    private static final String INTERNAL_EMAIL = "donation@donaton.internal";
+    private static final String INTERNAL_ROLE = "ADMIN";
+
     private final RestTemplate restTemplate;
     private final String baseUrl;
 
@@ -22,8 +25,8 @@ public class LogisticsClient {
     public void crearEnvio(Long donacionId, String email, String role) {
         String url = baseUrl + "/envios";
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Email", email == null || email.isBlank() ? "donation@donaton.internal" : email);
-        headers.add("X-User-Role", role == null || role.isBlank() ? "ADMIN" : role);
+        headers.add("X-User-Email", INTERNAL_EMAIL);
+        headers.add("X-User-Role", INTERNAL_ROLE);
         headers.add("Content-Type", "application/json");
 
         Map<String, Object> request = Map.of("donacionId", donacionId);

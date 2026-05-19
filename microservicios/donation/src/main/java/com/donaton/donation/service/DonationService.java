@@ -40,7 +40,7 @@ public class DonationService {
                         throw new BadRequestException("Rol inválido");
                 }
 
-                // Para usuarios, forzamos donar contra una necesidad.
+                
                 if ("USER".equalsIgnoreCase(role.trim()) && (donation.getNeedId() == null || donation.getNeedId().isBlank())) {
                         throw new BadRequestException("Debe seleccionar una necesidad para donar");
                 }
@@ -50,7 +50,7 @@ public class DonationService {
                         need = needsClient.getNeedById(donation.getNeedId(), email, role);
                         validateNeedMatchesDonation(donation, need);
 
-                        // Dirección: se deriva desde la necesidad (para no pedirla al donante ni a logística)
+                        
                         String derivedAddress = (need.getAddress() == null || need.getAddress().isBlank())
                                 ? need.getCenterName()
                                 : need.getAddress();
@@ -80,7 +80,7 @@ public class DonationService {
                                         try {
                                                 needsClient.rollbackReceive(donation.getNeedId(), donation.getCantidad());
                                         } catch (RuntimeException ignored) {
-                                                // best-effort
+                                                
                                         }
                                 }
                                 repository.delete(saved);
@@ -112,7 +112,7 @@ public class DonationService {
                 existente.setCantidad(donation.getCantidad());
                 existente.setTipo(donation.getTipo());
                 existente.setDireccion(donation.getDireccion());
-                // needId no se actualiza para evitar inconsistencias con necesidades
+                
 
                 return repository.save(existente);
     }

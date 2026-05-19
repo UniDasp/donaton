@@ -27,19 +27,25 @@ public class Application {
 	}
 
 	private void ensureRoleConstraint(JdbcTemplate jdbcTemplate) {
-		// Hibernate ddl-auto=update no actualiza CHECK constraints existentes. En entornos dev,
-		// aseguramos que el constraint de role acepte todos los roles actuales.
+		
+		
 		try {
 			jdbcTemplate.execute("ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check");
 			jdbcTemplate.execute("ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('USER','ADMIN','ONG'))");
 		} catch (Exception ignored) {
-			// Si la tabla/constraint no existe aún, o el usuario no tiene permisos, ignoramos.
+			
 		}
 	}
 
 	private void seedUser(UserRepository userRepository, String email, String password, Role role) {
 		userRepository.findByEmail(email)
-				.orElseGet(() -> userRepository.save(new User(null, email, password, role)));
+				.orElseGet(() -> {
+					User user = new User();
+					user.setEmail(email);
+					user.setPassword(password);
+					user.setRole(role);
+					return userRepository.save(user);
+				});
 	}
 
 }

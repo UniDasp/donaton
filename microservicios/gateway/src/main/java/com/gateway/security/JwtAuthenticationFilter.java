@@ -28,8 +28,11 @@ public class JwtAuthenticationFilter implements WebFilter {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().toString();
+        String method = exchange.getRequest().getMethod() == null
+                ? ""
+                : exchange.getRequest().getMethod().name();
 
-        if (isPublicPath(path)) {
+        if ("OPTIONS".equalsIgnoreCase(method) || isPublicPath(path)) {
             return chain.filter(exchange);
         }
 
@@ -104,8 +107,17 @@ public class JwtAuthenticationFilter implements WebFilter {
     }
 
     private boolean isPublicPath(String path) {
-        return path.equals("/auth/login") || 
-               path.equals("/auth/register") ||
-               path.equals("/auth/refresh");
+        if (path == null || path.isBlank()) return false;
+
+        String normalized = path.endsWith("/") && path.length() > 1
+            ? path.substring(0, path.length() - 1)
+            : path;
+
+        return normalized.equals("/auth/login")
+            || normalized.equals("/auth/register")
+            || normalized.equals("/auth/refresh")
+            || normalized.equals("/api/auth/login")
+            || normalized.equals("/api/auth/register")
+            || normalized.equals("/api/auth/refresh");
     }
 }

@@ -1,10 +1,14 @@
 package com.donaton.auth.service;
 
+import com.donaton.auth.dto.RoleUpdateRequestDTO;
 import com.donaton.auth.dto.TokenResponseDTO;
+import com.donaton.auth.dto.UserSummaryDTO;
 import com.donaton.auth.model.User;
 import com.donaton.auth.repository.UserRepository;
 import com.donaton.auth.security.JwtService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -17,8 +21,58 @@ public class UserService {
         this.jwtService = jwtService;
     }
 
-    public User registrar(User user) {
-        return repository.save(user);
+    public UserSummaryDTO registrarPublic(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new RuntimeException("Correo inválido");
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new RuntimeException("Contraseña inválida");
+        }
+
+        user.setEmail(user.getEmail().trim().toLowerCase());
+        if (repository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("El correo ya está registrado");
+        }
+
+        if (user.getName() != null) user.setName(user.getName().trim());
+        if (user.getPhone() != null) user.setPhone(user.getPhone().trim());
+        user.setRole(com.donaton.auth.model.Role.USER);
+        return toSummary(repository.save(user));
+    }
+
+    public List<UserSummaryDTO> listarUsuarios(String role) {
+        requireAdmin(role);
+        return repository.findAll().stream().map(this::toSummary).toList();
+    }
+
+    public UserSummaryDTO crearUsuario(String role, User user) {
+        requireAdmin(role);
+        validateNewUser(user);
+        user.setEmail(user.getEmail().trim().toLowerCase());
+        if (user.getName() != null) user.setName(user.getName().trim());
+        if (user.getPhone() != null) user.setPhone(user.getPhone().trim());
+        if (user.getRole() == null) user.setRole(com.donaton.auth.model.Role.USER);
+        return toSummary(repository.save(user));
+    }
+
+    public UserSummaryDTO cambiarRol(Long id, RoleUpdateRequestDTO request, String role) {
+        requireAdmin(role);
+        if (request == null || request.role() == null || request.role().isBlank()) {
+            throw new RuntimeException("Rol inválido");
+        }
+
+        User user = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        user.setRole(com.donaton.auth.model.Role.valueOf(request.role().trim().toUpperCase()));
+        return toSummary(repository.save(user));
+    }
+
+    public void eliminarUsuario(Long id, String role) {
+        requireAdmin(role);
+        User user = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        repository.delete(user);
     }
 
     public TokenResponseDTO login(String email, String password) {
@@ -63,5 +117,34 @@ public class UserService {
                 .accessExpiresIn(900000L)
                 .refreshExpiresIn(604800000L)
                 .build();
+    }
+
+    private void validateNewUser(User user) {
+        if (user.getEmail() == null || user.getEmail().isBlank()) {
+            throw new RuntimeException("Correo inválido");
+        }
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new RuntimeException("Contraseña inválida");
+        }
+        user.setEmail(user.getEmail().trim().toLowerCase());
+        if (repository.findByEmail(user.getEmail()).isPresent()) {
+            throw new RuntimeException("El correo ya está registrado");
+        }
+    }
+
+    private void requireAdmin(String role) {
+        if (role == null || !"ADMIN".equalsIgnoreCase(role.trim())) {
+            throw new RuntimeException("Solo un administrador puede realizar esta acción");
+        }
+    }
+
+    private UserSummaryDTO toSummary(User user) {
+        return new UserSummaryDTO(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPhone(),
+                user.getRole() == null ? null : user.getRole().name()
+        );
     }
 }

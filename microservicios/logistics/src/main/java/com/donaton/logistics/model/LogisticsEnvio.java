@@ -22,7 +22,7 @@ public class LogisticsEnvio {
 
     private String needId;
 
-    /** Destino final (dirección de la necesidad). */
+    
     @Column(nullable = false)
     private String direccion;
 

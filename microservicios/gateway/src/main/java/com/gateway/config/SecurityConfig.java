@@ -26,7 +26,16 @@ public class SecurityConfig {
         return http
                 .csrf().disable()
                 .authorizeExchange(authz -> authz
-                    .pathMatchers("/auth/login", "/auth/register", "/health", "/actuator/health").permitAll()
+                    .pathMatchers(
+                            "/auth/login",
+                            "/auth/register",
+                            "/auth/refresh",
+                            "/api/auth/login",
+                            "/api/auth/register",
+                            "/api/auth/refresh",
+                            "/health",
+                            "/actuator/health"
+                    ).permitAll()
                     .anyExchange().permitAll())
                 .httpBasic().disable()
                 .formLogin().disable()
