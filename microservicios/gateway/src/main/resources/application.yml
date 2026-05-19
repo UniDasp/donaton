@@ -33,6 +33,11 @@ spring:
               filters:
                 - RewritePath=/logistics(?<segment>/?.*), /envios${segment}
 
+            - id: envios
+              uri: http://logistics:8080
+              predicates:
+                - Path=/envios/**
+
             - id: needs
               uri: http://needs:8080
               predicates:

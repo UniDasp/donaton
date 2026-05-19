@@ -19,28 +19,27 @@ public class EnvioController {
 
     @PostMapping
     public LogisticsEnvio crear(
-            @RequestBody EnvioRequestDTO request
+            @RequestBody EnvioRequestDTO request,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
     ) {
-
-        LogisticsEnvio envio = new LogisticsEnvio();
-
-        envio.setDonacionId(request.getDonacionId());
-        envio.setDireccion(request.getDireccion());
-        envio.setEstado(request.getEstado());
-
-        return service.crearEnvio(envio);
+        return service.crearEnvio(request.getDonacionId(), email, role);
     }
 
     @GetMapping
-    public List<LogisticsEnvio> listar() {
-        return service.listar();
+    public List<LogisticsEnvio> listar(
+            @RequestParam(required = false) String acopioCenterId
+    ) {
+        return service.listar(acopioCenterId);
     }
 
     @PutMapping("/{id}/estado")
     public LogisticsEnvio actualizarEstado(
             @PathVariable Long id,
-            @RequestParam String estado
+            @RequestParam String estado,
+            @RequestHeader("X-User-Email") String email,
+            @RequestHeader("X-User-Role") String role
     ) {
-        return service.actualizarEstado(id, estado);
+        return service.actualizarEstado(id, estado, email, role);
     }
 }

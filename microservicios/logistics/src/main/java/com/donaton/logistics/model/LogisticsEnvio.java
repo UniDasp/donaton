@@ -3,7 +3,10 @@ package com.donaton.logistics.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
+
 @Entity
+@Table(name = "logistics_envio")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,11 +17,29 @@ public class LogisticsEnvio {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Long donacionId;
+
+    private String needId;
+
+    /** Destino final (dirección de la necesidad). */
+    @Column(nullable = false)
     private String direccion;
 
-    private String estado;
-    // Ej: PENDIENTE, EN_TRANSITO, ENTREGADO
+    @Column(nullable = false)
+    private String acopioCenterId;
 
-    private Long donacionId;
-    // referencia al microservicio de donaciones
+    @Column(nullable = false)
+    private String acopioCenterName;
+
+    @Column(nullable = false)
+    private String estado;
+
+    @Column(nullable = false)
+    private Instant createdAt;
+
+    @Column(nullable = false)
+    private Instant acopioDeadline;
+
+    private Double cantidadDonada;
 }

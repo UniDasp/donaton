@@ -18,6 +18,10 @@ public class DonationModel {
 
     private String direccion;
 
+    private String needId;
+
+    private String donorEmail;
+
     public DonationModel() {
     }
 
@@ -59,5 +63,21 @@ public class DonationModel {
 
     public void setDireccion(String direccion) {
         this.direccion = direccion;
+    }
+
+    public String getNeedId() {
+        return needId;
+    }
+
+    public void setNeedId(String needId) {
+        this.needId = needId;
+    }
+
+    public String getDonorEmail() {
+        return donorEmail;
+    }
+
+    public void setDonorEmail(String donorEmail) {
+        this.donorEmail = donorEmail;
     }
 }
