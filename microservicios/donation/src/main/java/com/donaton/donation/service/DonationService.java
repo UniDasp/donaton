@@ -106,15 +106,15 @@ public class DonationService {
     }
 
     public DonationModel actualizar(Long id, DonationModel donation) {
-                DonationModel existente = buscarPorId(id);
-
-                existente.setDescripcion(donation.getDescripcion());
-                existente.setCantidad(donation.getCantidad());
-                existente.setTipo(donation.getTipo());
-                existente.setDireccion(donation.getDireccion());
-                
-
-                return repository.save(existente);
+        DonationModel existente = buscarPorId(id);
+        existente.setDescripcion(donation.getDescripcion());
+        existente.setCantidad(donation.getCantidad());
+        existente.setTipo(donation.getTipo());
+        existente.setDireccion(donation.getDireccion());
+        if (donation.getNeedId() != null) {
+            existente.setNeedId(donation.getNeedId());
+        }
+        return repository.save(existente);
     }
 
     public void eliminar(Long id) {

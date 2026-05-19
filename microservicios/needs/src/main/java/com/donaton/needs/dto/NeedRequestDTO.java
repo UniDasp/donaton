@@ -1,4 +1,4 @@
-package com.bff.dto.request;
+package com.donaton.needs.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -11,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class NeedsRequest {
+public class NeedRequestDTO {
 
     @Size(max = 64)
     private String id;

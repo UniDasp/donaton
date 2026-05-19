@@ -10,11 +10,17 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class AuthRequest {
+public class RegisterRequest {
+
+    @Size(max = 120)
+    private String name;
 
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "El correo no es válido")
     private String email;
+
+    @Size(max = 30)
+    private String phone;
 
     @NotBlank(message = "La contraseña es obligatoria")
     @Size(min = 6, max = 100)

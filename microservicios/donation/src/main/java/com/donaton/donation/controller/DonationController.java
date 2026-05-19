@@ -1,7 +1,11 @@
 package com.donaton.donation.controller;
 
-import com.donaton.donation.model.DonationModel;
+import com.donaton.donation.dto.DonationRequestDTO;
+import com.donaton.donation.dto.DonationResponseDTO;
+import com.donaton.donation.mapper.DonationMapper;
 import com.donaton.donation.service.DonationService;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,46 +21,40 @@ public class DonationController {
     }
 
     @PostMapping
-    public DonationModel crear(
-            @RequestBody DonationModel donation,
+    @ResponseStatus(HttpStatus.CREATED)
+    public DonationResponseDTO crear(
+            @Valid @RequestBody DonationRequestDTO request,
             @RequestHeader("X-User-Email") String email,
             @RequestHeader("X-User-Role") String role
     ) {
-        return service.crear(donation, email, role);
+        return DonationMapper.toResponse(
+                service.crear(DonationMapper.toModel(request), email, role)
+        );
     }
 
     @GetMapping
-    public List<DonationModel> listar() {
-        return service.listar();
+    public List<DonationResponseDTO> listar() {
+        return service.listar().stream().map(DonationMapper::toResponse).toList();
     }
 
     @GetMapping("/{id}")
-    public DonationModel buscar(
-            @PathVariable Long id
-    ) {
-        return service.buscarPorId(id);
+    public DonationResponseDTO buscar(@PathVariable Long id) {
+        return DonationMapper.toResponse(service.buscarPorId(id));
     }
 
     @PutMapping("/{id}")
-    public DonationModel actualizar(
+    public DonationResponseDTO actualizar(
             @PathVariable Long id,
-            @RequestBody DonationModel donation
+            @Valid @RequestBody DonationRequestDTO request
     ) {
-        return service.actualizar(id, donation);
+        return DonationMapper.toResponse(
+                service.actualizar(id, DonationMapper.toModel(request))
+        );
     }
 
     @DeleteMapping("/{id}")
-    public void eliminar(
-            @PathVariable Long id
-    ) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminar(@PathVariable Long id) {
         service.eliminar(id);
     }
-
-
-
-
-
-
-
-
 }
