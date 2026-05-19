@@ -17,4 +17,5 @@ public class DonationResponse {
     private String needId;
     private String donorEmail;
     private String unit;
+    private Long logisticsId; 
 }
