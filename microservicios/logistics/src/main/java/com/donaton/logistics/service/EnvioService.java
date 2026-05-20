@@ -8,7 +8,7 @@ import com.donaton.logistics.exception.BadRequestException;
 import com.donaton.logistics.exception.ForbiddenException;
 import com.donaton.logistics.model.EnvioEstado;
 import com.donaton.logistics.model.LogisticsEnvio;
-import com.donaton.logistics.repository.EnvioRepository;
+import com.donaton.logistics.repository.EnvioRepositoryPattern;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +21,13 @@ import java.util.Locale;
 @Service
 public class EnvioService {
 
-    private final EnvioRepository repository;
+    private final EnvioRepositoryPattern repository;
     private final DonationClient donationClient;
     private final NeedsClient needsClient;
     private final int acopioDeadlineDays;
 
     public EnvioService(
-            EnvioRepository repository,
+            EnvioRepositoryPattern repository,
             DonationClient donationClient,
             NeedsClient needsClient,
             @Value("${logistics.acopio.deadline-days:3}") int acopioDeadlineDays

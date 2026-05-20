@@ -4,7 +4,7 @@ import com.donaton.auth.dto.RoleUpdateRequestDTO;
 import com.donaton.auth.dto.TokenResponseDTO;
 import com.donaton.auth.dto.UserSummaryDTO;
 import com.donaton.auth.model.User;
-import com.donaton.auth.repository.UserRepository;
+import com.donaton.auth.repository.UserRepositoryPattern;
 import com.donaton.auth.security.JwtService;
 import org.springframework.stereotype.Service;
 
@@ -13,10 +13,10 @@ import java.util.List;
 @Service
 public class UserService {
 
-    private final UserRepository repository;
+    private final UserRepositoryPattern repository;
     private final JwtService jwtService;
 
-    public UserService(UserRepository repository, JwtService jwtService) {
+    public UserService(UserRepositoryPattern repository, JwtService jwtService) {
         this.repository = repository;
         this.jwtService = jwtService;
     }

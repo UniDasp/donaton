@@ -1,7 +1,7 @@
 package com.donaton.needs.service;
 
 import com.donaton.needs.model.NeedEntity;
-import com.donaton.needs.repository.NeedRepository;
+import com.donaton.needs.repository.NeedRepositoryPattern;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -9,9 +9,9 @@ import java.util.List;
 @Service
 public class NeedService {
 
-    private final NeedRepository repository;
+    private final NeedRepositoryPattern repository;
 
-    public NeedService(NeedRepository repository) {
+    public NeedService(NeedRepositoryPattern repository) {
         this.repository = repository;
     }
 
