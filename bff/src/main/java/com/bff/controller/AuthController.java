@@ -1,8 +1,10 @@
 package com.bff.controller;
 
+import com.bff.dto.request.AdminUserRequest;
 import com.bff.dto.request.AuthRequest;
 import com.bff.dto.request.RefreshRequest;
 import com.bff.dto.request.RegisterRequest;
+import com.bff.dto.request.RoleUpdateRequest;
 import com.bff.dto.response.AuthResponse;
 import com.bff.dto.response.UserSummaryResponse;
 import com.bff.service.AuthService;
@@ -41,5 +43,27 @@ public class AuthController {
     @GetMapping("/users")
     public List<UserSummaryResponse> listUsers() {
         return authService.listUsers();
+    }
+
+    @PostMapping("/users")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserSummaryResponse createUser(
+            @Valid @RequestBody AdminUserRequest request
+    ) {
+        return authService.createUser(request);
+    }
+
+    @PutMapping("/users/{id}/role")
+    public UserSummaryResponse updateRole(
+            @PathVariable Long id,
+            @RequestBody RoleUpdateRequest request
+    ) {
+        return authService.updateRole(id, request);
+    }
+
+    @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@PathVariable Long id) {
+        authService.deleteUser(id);
     }
 }

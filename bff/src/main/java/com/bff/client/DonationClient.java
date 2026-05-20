@@ -1,6 +1,5 @@
 package com.bff.client;
 
-import com.bff.config.FeignClientConfig;
 import com.bff.dto.request.DonationRequest;
 import com.bff.dto.response.DonationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -8,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "donation-service", configuration = FeignClientConfig.class)
+@FeignClient(name = "donation-service")
 public interface DonationClient {
 
     @GetMapping("/donations")

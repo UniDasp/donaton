@@ -3,6 +3,12 @@ import { persist } from 'zustand/middleware';
 import type { User, LoginCredentials, RegisterData, Permission, UserRole } from '../types';
 import { MOCK_USERS } from '../mock/users';
 import { requestJson } from '../services/api';
+import {
+  isAccessTokenExpired,
+  registerStoreTokenGetters,
+  setAuthTokens,
+  syncAuthTokensFromStorage,
+} from '../lib/authSession';
 
 const ROLE_PERMISSIONS_MAP: Record<UserRole, Permission[]> = {
   admin: [
@@ -81,6 +87,23 @@ interface AuthState {
   hasPermission: (permission: Permission) => boolean;
 }
 
+export function syncAuthTokensToStore(accessToken: string, refresh: string | null = null) {
+  useAuthStore.setState({ token: accessToken, refreshToken: refresh, isAuthenticated: true });
+  setAuthTokens(accessToken, refresh);
+}
+
+export function logoutFromApi() {
+  setAuthTokens(null, null);
+  useAuthStore.setState({
+    user: null,
+    token: null,
+    refreshToken: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null,
+  });
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -116,6 +139,12 @@ export const useAuthStore = create<AuthState>()(
             ? { ...demoUser, role: derivedRole, permissions: ROLE_PERMISSIONS_MAP[derivedRole], lastLogin: new Date().toISOString() }
             : buildUserProfile(credentials.email, derivedRole, credentials.email.split('@')[0]);
 
+          if (!token) {
+            throw new Error('El servidor no devolvió un token de acceso');
+          }
+
+          setAuthTokens(token, refreshToken);
+
           set({
             user,
             token,
@@ -125,6 +154,7 @@ export const useAuthStore = create<AuthState>()(
             error: null,
           });
         } catch (error) {
+          setAuthTokens(null, null);
           const status = error && typeof error === 'object' ? (error as any).status : undefined;
           const message = status === 500
             ? 'Credenciales inválidas'
@@ -204,22 +234,24 @@ export const useAuthStore = create<AuthState>()(
             : refreshToken;
 
           if (newAccessToken) {
-            set({ token: newAccessToken, refreshToken: newRefreshToken });
+            setAuthTokens(newAccessToken, newRefreshToken);
+            set({ token: newAccessToken, refreshToken: newRefreshToken, isAuthenticated: true });
           }
         } catch {
-          
+          setAuthTokens(null, null);
           set({ user: null, token: null, refreshToken: null, isAuthenticated: false, isLoading: false });
         }
       },
 
       logout: () => {
-        set({ 
-          user: null, 
+        setAuthTokens(null, null);
+        set({
+          user: null,
           token: null,
           refreshToken: null,
-          isAuthenticated: false, 
-          isLoading: false, 
-          error: null 
+          isAuthenticated: false,
+          isLoading: false,
+          error: null,
         });
       },
 
@@ -235,7 +267,30 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'donaton-auth',
-      partialize: (state) => ({ user: state.user, token: state.token, refreshToken: state.refreshToken, isAuthenticated: state.isAuthenticated })
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.token || isAccessTokenExpired(state.token)) {
+          setAuthTokens(null, null);
+          if (state) {
+            state.user = null;
+            state.token = null;
+            state.refreshToken = null;
+            state.isAuthenticated = false;
+          }
+          return;
+        }
+        syncAuthTokensFromStorage();
+      },
     }
   )
+);
+
+registerStoreTokenGetters(
+  () => useAuthStore.getState().token,
+  () => useAuthStore.getState().refreshToken,
 );

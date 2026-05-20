@@ -17,6 +17,9 @@ spring:
             read-timeout: 10000
             logger-level: basic
 
+jwt:
+  secret: mi_clave_secreta_muy_larga_para_hs256_segura_12345
+
 logging:
   level:
     com.bff: INFO
@@ -41,6 +44,9 @@ spring:
           needs-service:
             url: http://localhost:8084
 ---
+server:
+  port: 8080
+
 spring:
   config:
     activate:

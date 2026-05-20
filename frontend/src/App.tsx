@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { syncAuthTokensFromStorage } from './lib/authSession';
 import { useAuthStore } from './store/authStore';
 import { MainLayout } from './components/Layout';
 import { LoginPage } from './pages/LoginPage';
@@ -11,13 +12,20 @@ import { UsersPage } from './pages/UsersPage';
 import type { Permission } from './types';
 
 function HydrationGate({ children }: { children: React.ReactNode }) {
-  const [ready, setReady] = useState(useAuthStore.persist.hasHydrated());
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (!ready) {
-      const unsub = useAuthStore.persist.onFinishHydration(() => setReady(true));
-      return unsub;
+    const finish = () => {
+      syncAuthTokensFromStorage();
+      setReady(true);
+    };
+
+    if (useAuthStore.persist.hasHydrated()) {
+      finish();
+      return;
     }
+
+    return useAuthStore.persist.onFinishHydration(finish);
   }, []);
 
   if (!ready) return null;
@@ -26,9 +34,9 @@ function HydrationGate({ children }: { children: React.ReactNode }) {
 }
 
 function ProtectedRoute({ children, requiredPermission }: { children: React.ReactNode; requiredPermission?: Permission }) {
-  const { isAuthenticated, hasPermission } = useAuthStore();
-  
-  if (!isAuthenticated) {
+  const { isAuthenticated, token, hasPermission } = useAuthStore();
+
+  if (!isAuthenticated || !token) {
     return <Navigate to="/login" replace />;
   }
   

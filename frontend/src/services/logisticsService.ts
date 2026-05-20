@@ -3,7 +3,7 @@ import { requestJson } from './api';
 
 class LogisticsService {
   async getAll(acopioCenterId?: string): Promise<EnvioRecord[]> {
-    return requestJson<EnvioRecord[]>('/envios', {
+    return requestJson<EnvioRecord[]>('/logistics', {
       query: acopioCenterId ? { acopioCenterId } : undefined,
     });
   }
@@ -18,14 +18,14 @@ class LogisticsService {
   }
 
   async create(donacionId: number): Promise<EnvioRecord> {
-    return requestJson<EnvioRecord>('/envios', {
+    return requestJson<EnvioRecord>('/logistics', {
       method: 'POST',
       body: { donacionId },
     });
   }
 
   async updateState(id: string | number, estado: string): Promise<EnvioRecord> {
-    return requestJson<EnvioRecord>(`/envios/${id}/estado`, {
+    return requestJson<EnvioRecord>(`/logistics/${id}/estado`, {
       method: 'PUT',
       query: { estado },
     });

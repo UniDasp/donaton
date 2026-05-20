@@ -1,6 +1,5 @@
 package com.bff.client;
 
-import com.bff.config.FeignClientConfig;
 import com.bff.dto.request.NeedsRequest;
 import com.bff.dto.response.NeedsResponse;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -8,7 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@FeignClient(name = "needs-service", configuration = FeignClientConfig.class)
+@FeignClient(name = "needs-service")
 public interface NeedsClient {
 
     @GetMapping("/needs")

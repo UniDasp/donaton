@@ -1,9 +1,11 @@
 package com.bff.service;
 
 import com.bff.client.AuthClient;
+import com.bff.dto.request.AdminUserRequest;
 import com.bff.dto.request.AuthRequest;
 import com.bff.dto.request.RefreshRequest;
 import com.bff.dto.request.RegisterRequest;
+import com.bff.dto.request.RoleUpdateRequest;
 import com.bff.dto.response.AuthResponse;
 import com.bff.dto.response.UserSummaryResponse;
 import org.springframework.stereotype.Service;
@@ -33,5 +35,17 @@ public class AuthService {
 
     public List<UserSummaryResponse> listUsers() {
         return authClient.listUsers();
+    }
+
+    public UserSummaryResponse createUser(AdminUserRequest request) {
+        return authClient.createUser(request);
+    }
+
+    public UserSummaryResponse updateRole(Long id, RoleUpdateRequest request) {
+        return authClient.updateRole(id, request);
+    }
+
+    public void deleteUser(Long id) {
+        authClient.deleteUser(id);
     }
 }

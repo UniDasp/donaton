@@ -43,7 +43,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
     function onForceLogin(event: Event) {
       const detail = (event as CustomEvent).detail as { status?: number; message?: string } | undefined;
-      if (detail?.status === 403) {
+      if (detail?.status === 401 || detail?.status === 403) {
         setHttpBanner(null);
         logout();
         navigate('/login', { replace: true });

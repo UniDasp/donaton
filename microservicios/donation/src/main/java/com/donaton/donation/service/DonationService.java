@@ -127,11 +127,6 @@ public class DonationService {
                         throw new BadRequestException("Necesidad inválida");
                 }
 
-                String needStatus = need.getStatus() == null ? "" : need.getStatus().trim();
-                if (!("activa".equalsIgnoreCase(needStatus) || "en_proceso".equalsIgnoreCase(needStatus))) {
-                        throw new BadRequestException("La necesidad no está abierta");
-                }
-
                 String needCategory = need.getCategory() == null ? "" : need.getCategory().trim();
                 if (!needCategory.equalsIgnoreCase(donation.getTipo().trim())) {
                         throw new BadRequestException("El tipo de donación no coincide con la necesidad");
