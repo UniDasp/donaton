@@ -6,7 +6,7 @@ import com.donaton.donation.dto.NeedDTO;
 import com.donaton.donation.exception.BadRequestException;
 import com.donaton.donation.exception.ResourceNotFoundException;
 import com.donaton.donation.model.DonationModel;
-import com.donaton.donation.repository.DonationRepository;
+import com.donaton.donation.repository.DonationRepositoryPattern;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,12 +14,12 @@ import java.util.List;
 @Service
 public class DonationService {
 
-    private final DonationRepository repository;
+    private final DonationRepositoryPattern repository;
     private final NeedsClient needsClient;
     private final LogisticsClient logisticsClient;
 
     public DonationService(
-            DonationRepository repository,
+            DonationRepositoryPattern repository,
             NeedsClient needsClient,
             LogisticsClient logisticsClient
     ) {

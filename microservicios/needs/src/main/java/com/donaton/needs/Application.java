@@ -1,7 +1,7 @@
 package com.donaton.needs;
 
 import com.donaton.needs.model.NeedEntity;
-import com.donaton.needs.repository.NeedRepository;
+import com.donaton.needs.repository.NeedRepositoryPattern;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -15,7 +15,7 @@ public class Application {
 	}
 
 	@Bean
-	CommandLineRunner seedNeeds(NeedRepository repository) {
+	CommandLineRunner seedNeeds(NeedRepositoryPattern repository) {
 		return args -> {
 			if (repository.count() > 0) return;
 
