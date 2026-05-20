@@ -1,10 +1,37 @@
-> [!NOTE]
-> Este es el repositorio del backend de **Donaton**.
 
-### Repositorios del proyecto
+# Donaton
+> [!IMPORTANT]
+> Plataforma de gestión de donaciones basada en microservicios.
 
-- **Frontend:**
-  [https://github.com/UniDasp/donaton-project](https://github.com/UniDasp/donaton-project)
+![Web](https://i.imgur.com/qfgKokU.png)
 
-- **BFF (Backend for Frontend):**
-  [https://github.com/UniDasp/donaton-project-bff](https://github.com/UniDasp/donaton-project-bff)
+## Tecnologías
+- Java Spring Boot
+- React + TypeScript
+- Docker Compose
+- JWT
+- OpenFeign
+
+## Arquitectura
+- Gateway
+- BFF
+- Auth Service
+- Donation Service
+- Needs Service
+- Logistics Service
+
+## Ejecutar proyecto
+
+```bash
+docker compose up --build
+```
+
+## Servicios que encontraras
+- Servicios
+- Frontend
+- Gateway
+- BFF
+- Auth
+- Donation
+- Needs
+- Logistics
