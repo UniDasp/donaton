@@ -1,32 +1,44 @@
 package com.bff.config;
 
-import feign.RequestInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import jakarta.servlet.http.HttpServletRequest;
+import feign.RequestInterceptor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Configuration
 public class FeignClientConfig {
 
+    
     @Bean
     public RequestInterceptor feignAuthRequestInterceptor() {
         return template -> {
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication instanceof JwtAuthenticationToken jwtAuth) {
-                String token = jwtAuth.getToken().getTokenValue();
-                template.header("Authorization", "Bearer " + token);
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            
+            if (attributes != null) {
+                HttpServletRequest request = attributes.getRequest();
 
-                String email = jwtAuth.getToken().getSubject();
-                if (email != null && !email.isBlank()) {
-                    template.header("X-User-Email", email);
-                }
+                String authHeader = request.getHeader("Authorization");
+                String userEmail = request.getHeader("X-User-Email");
+                String userRole = request.getHeader("X-User-Role");
 
-                Object role = jwtAuth.getToken().getClaim("role");
-                if (role != null) {
-                    template.header("X-User-Role", role.toString());
+                if (authHeader != null && !authHeader.isBlank()) {
+                    template.header("Authorization", authHeader);
+                    log.debug("[FEIGN-INTERCEPTOR] Propagando Authorization header");
                 }
+                if (userEmail != null && !userEmail.isBlank()) {
+                    template.header("X-User-Email", userEmail);
+                    log.debug("[FEIGN-INTERCEPTOR] Propagando X-User-Email: {}", userEmail);
+                }
+                if (userRole != null && !userRole.isBlank()) {
+                    template.header("X-User-Role", userRole);
+                    log.debug("[FEIGN-INTERCEPTOR] Propagando X-User-Role: {}", userRole);
+                }
+            } else {
+                log.warn("[FEIGN-INTERCEPTOR] RequestAttributes no disponible - sin headers para propagar");
             }
         };
     }
