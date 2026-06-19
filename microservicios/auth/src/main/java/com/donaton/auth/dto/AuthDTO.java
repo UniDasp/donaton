@@ -11,7 +11,7 @@ import lombok.Setter;
 public class AuthDTO {
 
     @NotBlank(message = "El correo es obligatorio")
-    @Email(message = "El correo no es válido")
+    @Email(message = "Credenciales inválidas")
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")

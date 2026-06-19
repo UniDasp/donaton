@@ -23,10 +23,10 @@ public class UserService {
 
     public UserSummaryDTO registrarPublic(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new RuntimeException("Correo inválido");
+            throw new RuntimeException("Credenciales inválidas");
         }
         if (user.getPassword() == null || user.getPassword().isBlank()) {
-            throw new RuntimeException("Contraseña inválida");
+            throw new RuntimeException("Credenciales inválidas");
         }
 
         user.setEmail(user.getEmail().trim().toLowerCase());
@@ -81,7 +81,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
         if (!user.getPassword().equals(password)) {
-            throw new RuntimeException("Contraseña incorrecta");
+            throw new RuntimeException("Credenciales inválidas");
         }
 
         String accessToken = jwtService.generateAccessToken(user.getEmail(), user.getRole().name());
@@ -121,10 +121,10 @@ public class UserService {
 
     private void validateNewUser(User user) {
         if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new RuntimeException("Correo inválido");
+            throw new RuntimeException("Credenciales inválidas");
         }
         if (user.getPassword() == null || user.getPassword().isBlank()) {
-            throw new RuntimeException("Contraseña inválida");
+            throw new RuntimeException("Credenciales inválidas");
         }
         user.setEmail(user.getEmail().trim().toLowerCase());
         if (repository.findByEmail(user.getEmail()).isPresent()) {

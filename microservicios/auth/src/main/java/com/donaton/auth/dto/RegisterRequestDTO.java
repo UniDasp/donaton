@@ -14,7 +14,7 @@ public class RegisterRequestDTO {
     private String name;
 
     @NotBlank(message = "El correo es obligatorio")
-    @Email(message = "El correo no es válido")
+    @Email(message = "Credenciales inválidas")
     private String email;
 
     @Size(max = 30, message = "El teléfono no puede superar 30 caracteres")
