@@ -1,6 +1,8 @@
 package com.gateway.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.gateway.dto.ErrorResponse;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -22,16 +24,23 @@ public class JwtAuthenticationFilter implements WebFilter {
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.objectMapper = new ObjectMapper();
+        this.objectMapper = new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
-
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         String path = exchange.getRequest().getPath().toString();
-        String method = exchange.getRequest().getMethod() == null
-                ? ""
-                : exchange.getRequest().getMethod().name();
+        String method = exchange.getRequest().getMethod() == null ? "" : exchange.getRequest().getMethod().name();
+
+        log.debug("[JWT-FILTER] Evaluando ruta: {} (método: {})", path, method);
+        
+        // Verificar si la ruta es pública - sin autenticación requerida
+        if (isPublicPath(path)) {
+            log.info("[JWT-FILTER] ✓ Ruta pública permitida sin autenticación: {}", path);
+            return chain.filter(exchange);
+        }
 
         log.debug("[JWT-FILTER] Validando token - {} {}", method, path);
 
@@ -39,13 +48,13 @@ public class JwtAuthenticationFilter implements WebFilter {
             String token = extractTokenFromRequest(exchange);
 
             if (token == null || token.isEmpty()) {
-                log.warn("[JWT-FILTER]  Token no proporcionado - {}", path);
+                log.warn("[JWT-FILTER] Token no proporcionado - {}", path);
                 return sendErrorResponse(exchange, HttpStatus.UNAUTHORIZED, 
                         "Token no proporcionado");
             }
 
             if (!jwtTokenProvider.validateToken(token)) {
-                log.warn("[JWT-FILTER]  Token inválido o expirado - {}", path);
+                log.warn("[JWT-FILTER] Token inválido o expirado - {}", path);
                 return sendErrorResponse(exchange, HttpStatus.UNAUTHORIZED, 
                         "Token inválido o expirado");
             }
@@ -56,30 +65,28 @@ public class JwtAuthenticationFilter implements WebFilter {
             log.info("[JWT-FILTER] Autenticación exitosa - Usuario: {} | Rol: {} | Ruta: {}", 
                     email, role, path);
 
-          ServerWebExchange enrichedExchange = exchange.mutate()
+            ServerWebExchange enrichedExchange = exchange.mutate()
                     .request(r -> r
-                            .header("Authorization", "Bearer " + token)      
-                            .header("X-User-Email", email)                   
-                            .header("X-User-Role", role))                    
+                            .header("Authorization", "Bearer " + token)
+                            .header("X-User-Email", email)
+                            .header("X-User-Role", role))
                     .build();
 
             log.debug("[JWT-FILTER] ✓ Petición autorizada - delegando a siguiente etapa");
             return chain.filter(enrichedExchange);
 
         } catch (JwtException e) {
-            log.error("[JWT-FILTER]  Error JWT: {}", e.getMessage());
+            log.error("[JWT-FILTER] Error JWT: {}", e.getMessage());
             return sendErrorResponse(exchange, HttpStatus.UNAUTHORIZED, 
                     "Token inválido: " + e.getMessage());
         } catch (Exception e) {
-            log.error("[JWT-FILTER]  Error inesperado: {}", e.getMessage(), e);
+            log.error("[JWT-FILTER] Error inesperado: {}", e.getMessage(), e);
             return sendErrorResponse(exchange, HttpStatus.INTERNAL_SERVER_ERROR, 
                     "Error interno del servidor");
         }
     }
 
-    
-    private Mono<Void> sendErrorResponse(ServerWebExchange exchange, HttpStatus status, 
-                                        String message) {
+    private Mono<Void> sendErrorResponse(ServerWebExchange exchange, HttpStatus status, String message) {
         exchange.getResponse().setStatusCode(status);
         exchange.getResponse().getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
@@ -102,17 +109,30 @@ public class JwtAuthenticationFilter implements WebFilter {
         }
     }
 
-   
     private String extractTokenFromRequest(ServerWebExchange exchange) {
         String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7); 
+            String token = authHeader.substring(7);
             log.debug("[JWT-FILTER] Token extraído del header Authorization");
             return token;
         }
         
         log.debug("[JWT-FILTER] Header Authorization no encontrado o formato incorrecto");
         return null;
+    }
+
+  
+    private boolean isPublicPath(String path) {
+        if (path == null) {
+            return false;
+        }
+        return path.contains("/auth/login")
+                || path.contains("/auth/register")
+                || path.contains("/auth/refresh")
+                || path.contains("/login")     
+                || path.contains("/register")
+                || path.contains("/health")
+                || path.contains("/actuator/health");
     }
 }
