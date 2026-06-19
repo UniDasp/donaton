@@ -12,7 +12,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.context.NoOpServerSecurityContextRepository;
 
 @Slf4j
-@Configuration
+@Configuration 
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
@@ -22,7 +22,6 @@ public class SecurityConfig {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    
     @Bean
     public SecurityWebFilterChain filterChain(ServerHttpSecurity http) {
         log.info("[GATEWAY] Inicializando cadena de filtros de seguridad perimetral");
@@ -34,21 +33,17 @@ public class SecurityConfig {
                 .logout(logout -> logout.disable())
                 
                 .authorizeExchange(authz -> authz
-                    
-                    
+                    .pathMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                     .pathMatchers(
-                            "/auth/login",
-                            "/auth/register",
-                            "/auth/refresh",
-                            "/api/auth/login",
-                            "/api/auth/register",
-                            "/api/auth/refresh",
+                            "/auth/**",
+                            "/api/auth/**",
+                            "/api/v1/auth/**",  
                             "/health",
                             "/actuator/health",
                             "/swagger-ui/**",
                             "/v3/api-docs/**"
                     ).permitAll()
-                   .anyExchange().authenticated()
+                    .anyExchange().permitAll() 
                 )
                 
                 .addFilterAt(
@@ -56,13 +51,8 @@ public class SecurityConfig {
                     SecurityWebFiltersOrder.AUTHENTICATION
                 )
                 
-                
-                
                 .securityContextRepository(NoOpServerSecurityContextRepository.getInstance())
                 
                 .build();
     }
 }
-
-
-

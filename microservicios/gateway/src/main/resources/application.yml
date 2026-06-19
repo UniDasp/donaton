@@ -6,33 +6,33 @@ spring:
     name: gateway
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
-            - id: auth
-              uri: http://auth:8080
-              predicates:
-                - Path=/auth/**
+      routes:
+        - id: auth-service-v1
+          uri: http://auth:8080
+          predicates:
+            - Path=/api/v1/auth/**
+          filters:
+            - RewritePath=/api/v1(?<segment>/?.*), $\{segment}
 
-            - id: bff
-              uri: http://bff:8081
-              predicates:
-                - Path=/bff/**
+        - id: bff-service
+          uri: http://bff:8080
+          predicates:
+            - Path=/api/v1/**
 
-          globalcors:
-            cors-configurations:
-              "[/**]":
-                allowedOrigins:
-                  - "*"
-                allowedMethods:
-                  - GET
-                  - POST
-                  - PUT
-                  - DELETE
-                  - PATCH
-                allowedHeaders:
-                  - "*"
-                allowCredentials: false
+      globalcors:
+        cors-configurations:
+          "[/**]":
+            allowedOrigins:
+              - "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+            allowedHeaders:
+              - "*"
+            allowCredentials: false
 
 jwt:
   secret: mi_clave_secreta_muy_larga_para_hs256_segura_12345

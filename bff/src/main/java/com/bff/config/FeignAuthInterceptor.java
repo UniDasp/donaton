@@ -2,27 +2,20 @@ package com.bff.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class FeignAuthInterceptor implements RequestInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(FeignAuthInterceptor.class);
 
-    private final JwtDecoder jwtDecoder;
-
-    public FeignAuthInterceptor(JwtDecoder jwtDecoder) {
-        this.jwtDecoder = jwtDecoder;
+    public FeignAuthInterceptor() {
     }
 
     @Override
@@ -31,59 +24,37 @@ public class FeignAuthInterceptor implements RequestInterceptor {
         if (path != null && (path.startsWith("/auth/login")
                 || path.startsWith("/auth/register")
                 || path.startsWith("/auth/refresh"))) {
+            log.debug("[FEIGN] Ruta pública - Sin headers de propagación: {}", path);
             return;
         }
 
-        Jwt jwt = resolveJwt();
-        if (jwt == null) {
-            log.warn("Feign call without JWT context: {} {}", template.method(), template.url());
-            return;
-        }
-
-        template.header("Authorization", "Bearer " + jwt.getTokenValue());
-
-        String email = jwt.getSubject();
-        if (email != null && !email.isBlank()) {
-            template.header("X-User-Email", email);
-        }
-
-        Object role = jwt.getClaim("role");
-        if (role != null && !role.toString().isBlank()) {
-            template.header("X-User-Role", role.toString());
-        }
-    }
-
-    private Jwt resolveJwt() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
-            return jwtAuth.getToken();
+        if (authentication == null) {
+            log.debug("[FEIGN] Sin autenticación en SecurityContext");
+            return;
         }
 
-        String tokenValue = extractBearerFromCurrentRequest();
-        if (tokenValue == null) {
-            return null;
-        }
+        if (authentication instanceof UsernamePasswordAuthenticationToken upAuth) {
+            String email = (String) upAuth.getPrincipal();
+            if (email != null && !email.isBlank()) {
+                template.header("X-User-Email", email);
+                log.debug("[FEIGN] Propagando X-User-Email: {} a {}", email, path);
+            }
 
-        try {
-            return jwtDecoder.decode(tokenValue);
-        } catch (Exception ex) {
-            log.warn("No se pudo decodificar JWT para Feign: {}", ex.getMessage());
-            return null;
+            String role = extractRoleFromAuthorities(upAuth);
+            if (role != null && !role.isBlank()) {
+                template.header("X-User-Role", role);
+                log.debug("[FEIGN] Propagando X-User-Role: {} a {}", role, path);
+            }
         }
     }
 
-    private String extractBearerFromCurrentRequest() {
-        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes attributes)) {
-            return null;
-        }
-
-        HttpServletRequest request = attributes.getRequest();
-        String authorization = request.getHeader("Authorization");
-        if (authorization == null || !authorization.startsWith("Bearer ")) {
-            return null;
-        }
-
-        String token = authorization.substring(7).trim();
-        return token.isEmpty() ? null : token;
+    private String extractRoleFromAuthorities(UsernamePasswordAuthenticationToken authentication) {
+        return authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .filter(auth -> auth.startsWith("ROLE_"))
+                .map(auth -> auth.substring(5))
+                .findFirst()
+                .orElse(null);
     }
 }
