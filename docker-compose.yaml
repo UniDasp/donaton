@@ -36,7 +36,9 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - donaton_network
+      donaton_network:
+        aliases:
+          - postgres
     restart: unless-stopped
 
   rabbitmq:
@@ -156,13 +158,17 @@ services:
     ports:
       - "8085:8080"
     environment:
-      <<: *spring-env
       SPRING_PROFILES_ACTIVE: docker
-      SERVER_PORT: 8080
-      JWT_SECRET: mi_clave_secreta_muy_larga_para_hs256_segura_12345
-      GATEWAY_URL: http://gateway:8080
+      SPRING_APPLICATION_NAME: bff
+      SPRING_CONFIG_NAME: properties
     depends_on:
-      gateway:
+      auth:
+        condition: service_started
+      donation:
+        condition: service_started
+      logistics:
+        condition: service_started
+      needs:
         condition: service_started
     networks:
       - donaton_network

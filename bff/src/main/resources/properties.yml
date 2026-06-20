@@ -4,10 +4,8 @@ server:
 spring:
   application:
     name: bff
-
   profiles:
     active: local
-
   cloud:
     openfeign:
       client:
@@ -16,9 +14,6 @@ spring:
             connect-timeout: 5000
             read-timeout: 10000
             logger-level: basic
-
-jwt:
-  secret: mi_clave_secreta_muy_larga_para_hs256_segura_12345
 
 logging:
   level:
@@ -29,38 +24,19 @@ logging:
 spring:
   config:
     activate:
-      on-profile: local
-
+      on-profile: docker
   cloud:
     openfeign:
       client:
         config:
           auth-service:
-            url: http://localhost:8081
+            url: http://auth-service:8080
           donation-service:
-            url: http://localhost:8082
+            url: http://donation-service:8080
           logistics-service:
-            url: http://localhost:8083
+            url: http://logistics-service:8080
           needs-service:
-            url: http://localhost:8084
----
+            url: http://needs-service:8080
+
 server:
   port: 8080
-
-spring:
-  config:
-    activate:
-      on-profile: docker
-
-  cloud:
-    openfeign:
-      client:
-        config:
-          auth-service:
-            url: http://auth:8080
-          donation-service:
-            url: http://donation:8080
-          logistics-service:
-            url: http://logistics:8080
-          needs-service:
-            url: http://needs:8080

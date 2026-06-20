@@ -1,7 +1,6 @@
 package com.donaton.logistics.repository.impl;
 
 import com.donaton.logistics.model.LogisticsEnvio;
-import com.donaton.logistics.repository.EnvioRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.springframework.stereotype.Repository;
@@ -10,35 +9,16 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.util.List;
 
-/**
- * Implementación personalizada del repositorio EnvioRepository.
- * Proporciona métodos adicionales y queries optimizadas específicas del negocio
- * de logística, demostrando el patrón Repository Pattern completo.
- * 
- * Esta clase se combina automáticamente con EnvioRepository gracias al sufijo "Impl"
- * y la anotación @Repository, permitiendo extender funcionalidad de JpaRepository.
- */
 @Repository
 @Transactional
-public class EnvioRepositoryImpl {
+public class EnvioCustomRepository {
 
     private final EntityManager entityManager;
 
-    /**
-     * Constructor que inyecta el EntityManager para queries personalizadas.
-     * 
-     * @param entityManager EntityManager de JPA
-     */
-    public EnvioRepositoryImpl(EntityManager entityManager) {
+    public EnvioCustomRepository(EntityManager entityManager) {
         this.entityManager = entityManager;
     }
 
-    /**
-     * Obtiene un resumen estadístico de envíos por estado.
-     * Útil para dashboards y reportes de logística.
-     * 
-     * @return Arreglo con [PENDIENTE_ACOPIO, EN_TRANSITO, ENTREGADO, INEXISTENTE]
-     */
     @Transactional(readOnly = true)
     public long[] getEnvioStatisticsByEstado() {
         long[] stats = new long[4];
@@ -56,12 +36,6 @@ public class EnvioRepositoryImpl {
         return stats;
     }
 
-    /**
-     * Obtiene la cantidad total de donaciones por centro de acopio.
-     * Suma de todas las cantidades donadas por centro.
-     * 
-     * @return Lista de objetos [centerId, totalCantidad]
-     */
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
     public List<Object[]> getTotalCantidadByCentro() {
@@ -76,13 +50,6 @@ public class EnvioRepositoryImpl {
         return query.getResultList();
     }
 
-    /**
-     * Busca envíos próximos a vencer (en los próximos N días).
-     * Útil para alertas y gestión proactiva de deadlines.
-     * 
-     * @param dias Número de días para el rango
-     * @return Lista de envíos próximos a vencer
-     */
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
     public List<LogisticsEnvio> findEnviosProximosAVencer(int dias) {
@@ -101,15 +68,6 @@ public class EnvioRepositoryImpl {
         return query.getResultList();
     }
 
-    /**
-     * Actualiza el estado de múltiples envíos de forma optimizada.
-     * Útil para cambios masivos de estado (ej: expiración automática).
-     * 
-     * @param estadoAnterior Estado actual
-     * @param estadoNuevo Nuevo estado
-     * @param deadline Fecha límite para el cambio
-     * @return Cantidad de envíos actualizados
-     */
     @Transactional
     public int updateEnvioEstadoBulk(String estadoAnterior, String estadoNuevo, Instant deadline) {
         Query query = entityManager.createQuery(
@@ -125,13 +83,6 @@ public class EnvioRepositoryImpl {
         return query.executeUpdate();
     }
 
-    /**
-     * Obtiene el detalle de envíos con información relacionada.
-     * Optimiza queries N+1 combinando información de donaciones y necesidades.
-     * 
-     * @param centerId ID del centro de acopio
-     * @return Lista de envíos con detalles completos
-     */
     @Transactional(readOnly = true)
     @SuppressWarnings("unchecked")
     public List<LogisticsEnvio> getEnviosDetalladosByCentro(String centerId) {
@@ -145,12 +96,6 @@ public class EnvioRepositoryImpl {
         return query.getResultList();
     }
 
-    /**
-     * Verifica si un centro de acopio tiene envíos pendientes.
-     * 
-     * @param centerId ID del centro de acopio
-     * @return true si hay envíos pendientes, false en caso contrario
-     */
     @Transactional(readOnly = true)
     public boolean hasPendingEnviosByCentro(String centerId) {
         Query query = entityManager.createQuery(
@@ -163,13 +108,6 @@ public class EnvioRepositoryImpl {
         return (Boolean) query.getSingleResult();
     }
 
-    /**
-     * Obtiene el tiempo promedio de entrega para una necesidad.
-     * Analiza la diferencia entre creación y estado ENTREGADO.
-     * 
-     * @param needId ID de la necesidad
-     * @return Tiempo promedio en milisegundos, o null si no hay datos
-     */
     @Transactional(readOnly = true)
     public Double getPromedioTiempoEntrega(String needId) {
         Query query = entityManager.createQuery(

@@ -16,7 +16,7 @@ public class RegisterRequest {
     private String name;
 
     @NotBlank(message = "El correo es obligatorio")
-    @Email(message = "El correo no es válido")
+    @Email(message = "Credenciales inválidas")
     private String email;
 
     @Size(max = 30)

@@ -2,7 +2,7 @@ package com.donaton.auth;
 
 import com.donaton.auth.model.Role;
 import com.donaton.auth.model.User;
-import com.donaton.auth.repository.UserRepository;
+import com.donaton.auth.repository.UserRepositoryPattern;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -17,7 +17,7 @@ public class Application {
 	}
 
 	@Bean
-	CommandLineRunner seedTestUsers(UserRepository userRepository, JdbcTemplate jdbcTemplate) {
+	CommandLineRunner seedTestUsers(UserRepositoryPattern userRepository, JdbcTemplate jdbcTemplate) {
 		return args -> {
 			ensureRoleConstraint(jdbcTemplate);
 			seedUser(userRepository, "admin@donaton.test", "admin123", Role.ADMIN);
@@ -37,7 +37,7 @@ public class Application {
 		}
 	}
 
-	private void seedUser(UserRepository userRepository, String email, String password, Role role) {
+	private void seedUser(UserRepositoryPattern userRepository, String email, String password, Role role) {
 		userRepository.findByEmail(email)
 				.orElseGet(() -> {
 					User user = new User();
