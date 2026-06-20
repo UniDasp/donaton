@@ -9,6 +9,7 @@ import { DonationsPage } from './pages/DonationsPage';
 import { NeedsPage } from './pages/NeedsPage';
 import { LogisticsPage } from './pages/LogisticsPage';
 import { UsersPage } from './pages/UsersPage';
+import { ForgotPassword } from './pages/ForgotPassword';
 import type { Permission } from './types';
 
 function HydrationGate({ children }: { children: React.ReactNode }) {
@@ -36,11 +37,16 @@ function HydrationGate({ children }: { children: React.ReactNode }) {
 function ProtectedRoute({ children, requiredPermission }: { children: React.ReactNode; requiredPermission?: Permission }) {
   const { isAuthenticated, token, hasPermission } = useAuthStore();
 
+  console.log("Hola")
+  console.log("Values: ", isAuthenticated, token, requiredPermission ? hasPermission(requiredPermission) : 'no permission check');
+
   if (!isAuthenticated || !token) {
+    alert('Debes iniciar sesión para acceder a esta página.');
     return <Navigate to="/login" replace />;
   }
   
   if (requiredPermission && !hasPermission(requiredPermission)) {
+    alert('No tienes permiso para acceder a esta página.');
     return <Navigate to="/" replace />;
   }
   
@@ -95,6 +101,12 @@ export default function App() {
           <ProtectedRoute requiredPermission="users:manage">
             <UsersPage />
           </ProtectedRoute>
+        } />
+
+        <Route path="/forgot-password" element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
         } />
         
         <Route path="*" element={<Navigate to="/" replace />} />
