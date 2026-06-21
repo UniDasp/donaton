@@ -168,7 +168,7 @@ export function LoginPage() {
 
           {isLogin && (
             <div className="mt-4 text-center">
-              <a href="#" className="text-sm text-primary hover:underline">¿Olvidaste tu contraseña?</a>
+              <a href="/forgot-password" className="text-sm text-primary hover:underline">¿Olvidaste tu contraseña?</a>
             </div>
           )}
         </div>
