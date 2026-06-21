@@ -1,0 +1,165 @@
+version: 1
+
+databases:
+  - name: postgres-db
+    databaseName: mydatabase
+    user: myuser
+    plan: free
+
+services:
+  - type: privateService
+    name: rabbitmq
+    env: docker
+    image: rabbitmq:3.13-management
+    plan: free
+    port: 5672
+    envVars:
+      - key: RABBITMQ_DEFAULT_USER
+        value: myuser
+      - key: RABBITMQ_DEFAULT_PASS
+        value: secret
+
+  - type: privateService
+    name: auth-service
+    env: docker
+    dockerContext: ./microservicios/auth
+    plan: free
+    port: 8080
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: postgres-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        value: myuser
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: secret
+      - key: SPRING_RABBITMQ_HOST
+        value: rabbitmq
+      - key: SPRING_RABBITMQ_USERNAME
+        value: myuser
+      - key: SPRING_RABBITMQ_PASSWORD
+        value: secret
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_MAIN_LAZY_INITIALIZATION
+        value: "true"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75"
+      - key: JWT_SECRET
+        value: mi_clave_secreta_muy_larga_para_hs256_segura_12345
+
+  - type: privateService
+    name: donation-service
+    env: docker
+    dockerContext: ./microservicios/donation
+    plan: free
+    port: 8080
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: postgres-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        value: myuser
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: secret
+      - key: SPRING_RABBITMQ_HOST
+        value: rabbitmq
+      - key: SPRING_RABBITMQ_USERNAME
+        value: myuser
+      - key: SPRING_RABBITMQ_PASSWORD
+        value: secret
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_MAIN_LAZY_INITIALIZATION
+        value: "true"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75"
+
+  - type: privateService
+    name: logistics-service
+    env: docker
+    dockerContext: ./microservicios/logistics
+    plan: free
+    port: 8080
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: postgres-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        value: myuser
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: secret
+      - key: SPRING_RABBITMQ_HOST
+        value: rabbitmq
+      - key: SPRING_RABBITMQ_USERNAME
+        value: myuser
+      - key: SPRING_RABBITMQ_PASSWORD
+        value: secret
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_MAIN_LAZY_INITIALIZATION
+        value: "true"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75"
+
+  - type: privateService
+    name: needs-service
+    env: docker
+    dockerContext: ./microservicios/needs
+    plan: free
+    port: 8080
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        fromDatabase:
+          name: postgres-db
+          property: connectionString
+      - key: SPRING_DATASOURCE_USERNAME
+        value: myuser
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: secret
+      - key: SPRING_RABBITMQ_HOST
+        value: rabbitmq
+      - key: SPRING_RABBITMQ_USERNAME
+        value: myuser
+      - key: SPRING_RABBITMQ_PASSWORD
+        value: secret
+      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+        value: update
+      - key: SPRING_MAIN_LAZY_INITIALIZATION
+        value: "true"
+      - key: JAVA_TOOL_OPTIONS
+        value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75"
+
+  - type: web
+    name: gateway-service
+    env: docker
+    dockerContext: ./microservicios/gateway
+    plan: free
+    port: 8080
+    envVars:
+      - key: JWT_SECRET
+        value: mi_clave_secreta_muy_larga_para_hs256_segura_12345
+
+  - type: web
+    name: bff-service
+    env: docker
+    dockerContext: ./bff
+    plan: free
+    port: 8080
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: docker
+      - key: SPRING_APPLICATION_NAME
+        value: bff
+      - key: SPRING_CONFIG_NAME
+        value: properties
+        
+  - type: web
+    name: frontend-app
+    env: docker
+    dockerContext: ./frontend
+    plan: free
+    port: 80
