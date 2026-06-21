@@ -13,25 +13,15 @@
 - OpenFeign
 
 ## Arquitectura
-- Gateway
-- BFF
-- Auth Service
-- Donation Service
-- Needs Service
-- Logistics Service
-
+- [Microservicios](microservicios/README.md)
+  - Gateway Service
+  - Donation Service
+  - Needs Service
+  - Logistics Service
+- [BFF](bff/README.md)
+- [Frontend](frontend/README.md)
 ## Ejecutar proyecto
 
 ```bash
 docker compose up --build
 ```
-
-## Servicios que encontraras
-- Servicios
-- Frontend
-- Gateway
-- BFF
-- Auth
-- Donation
-- Needs
-- Logistics
