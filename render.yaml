@@ -7,7 +7,7 @@ databases:
     plan: free
 
 services:
-  - type: privateService
+  - type: web
     name: rabbitmq
     env: docker
     image: rabbitmq:3.13-management
@@ -19,10 +19,11 @@ services:
       - key: RABBITMQ_DEFAULT_PASS
         value: secret
 
-  - type: privateService
+  - type: web
     name: auth-service
     env: docker
-    dockerContext: ./microservicios/auth
+    dockerContext: microservicios/auth
+    dockerfilePath: Dockerfile
     plan: free
     port: 8080
     envVars:
@@ -49,10 +50,11 @@ services:
       - key: JWT_SECRET
         value: mi_clave_secreta_muy_larga_para_hs256_segura_12345
 
-  - type: privateService
+  - type: web
     name: donation-service
     env: docker
-    dockerContext: ./microservicios/donation
+    dockerContext: microservicios/donation
+    dockerfilePath: Dockerfile
     plan: free
     port: 8080
     envVars:
@@ -77,10 +79,11 @@ services:
       - key: JAVA_TOOL_OPTIONS
         value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75"
 
-  - type: privateService
+  - type: web
     name: logistics-service
     env: docker
-    dockerContext: ./microservicios/logistics
+    dockerContext: microservicios/logistics
+    dockerfilePath: Dockerfile
     plan: free
     port: 8080
     envVars:
@@ -105,10 +108,11 @@ services:
       - key: JAVA_TOOL_OPTIONS
         value: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1 -XX:+UseContainerSupport -XX:MaxRAMPercentage=75"
 
-  - type: privateService
+  - type: web
     name: needs-service
     env: docker
-    dockerContext: ./microservicios/needs
+    dockerContext: microservicios/needs
+    dockerfilePath: Dockerfile
     plan: free
     port: 8080
     envVars:
@@ -136,7 +140,8 @@ services:
   - type: web
     name: gateway-service
     env: docker
-    dockerContext: ./microservicios/gateway
+    dockerContext: microservicios/gateway
+    dockerfilePath: Dockerfile
     plan: free
     port: 8080
     envVars:
@@ -146,7 +151,8 @@ services:
   - type: web
     name: bff-service
     env: docker
-    dockerContext: ./bff
+    dockerContext: bff
+    dockerfilePath: Dockerfile
     plan: free
     port: 8080
     envVars:
@@ -160,6 +166,7 @@ services:
   - type: web
     name: frontend-app
     env: docker
-    dockerContext: ./frontend
+    dockerContext: frontend
+    dockerfilePath: Dockerfile
     plan: free
     port: 80
