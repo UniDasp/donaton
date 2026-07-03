@@ -1,142 +1,53 @@
-package com.donaton.donation.service;
+package com.donaton.donation;
 
-import com.donaton.donation.client.LogisticsClient;
-import com.donaton.donation.client.NeedsClient;
-import com.donaton.donation.dto.NeedDTO;
-import com.donaton.donation.exception.BadRequestException;
-import com.donaton.donation.exception.ResourceNotFoundException;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+
 import com.donaton.donation.model.DonationModel;
 import com.donaton.donation.repository.DonationRepositoryPattern;
-import org.springframework.stereotype.Service;
+import com.donaton.donation.service.DonationService;
 
-import java.util.List;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@Service
-public class DonationService {
+@ExtendWith(MockitoExtension.class)
+public class DonationServiceTest {
 
-    private final DonationRepositoryPattern repository;
-    private final NeedsClient needsClient;
-    private final LogisticsClient logisticsClient;
+    @Mock
+    private DonationRepositoryPattern donationRepositoryPattern; // Tu repositorio real
 
-    public DonationService(
-            DonationRepositoryPattern repository,
-            NeedsClient needsClient,
-            LogisticsClient logisticsClient
-    ) {
-        this.repository = repository;
-        this.needsClient = needsClient;
-        this.logisticsClient = logisticsClient;
+    @InjectMocks
+    private DonationService donationService; // Tu servicio real
+
+    @Test
+    public void testCrearDonacionBasicaExitoso() {
+        // ARRANGE (Preparar los datos de prueba simulados)
+        DonationModel donationInput = new DonationModel();
+        donationInput.setCantidad(50);         // Satisface la validación: cantidad > 0
+        donationInput.setTipo("Alimentos");    // Satisface la validación: tipo no vacío
+        // Nota: Dejamos needId en null para que no intente llamar a los clientes Feign (needsClient) en esta prueba básica
+
+        DonationModel donationMockSaved = new DonationModel();
+        donationMockSaved.setId(1L);
+        donationMockSaved.setCantidad(50);
+        donationMockSaved.setTipo("Alimentos");
+
+        // Simulamos que cuando el repositorio guarde cualquier objeto DonationModel, devuelva nuestro objeto con ID asignado
+        when(donationRepositoryPattern.save(any(DonationModel.class))).thenReturn(donationMockSaved);
+
+        // ACT (Ejecutar el método real "crear" pasándole los datos requeridos)
+        DonationModel resultado = donationService.crear(donationInput, "test@donaton.com", "ADMIN");
+
+        // ASSERT (Verificar que todo se haya procesado de forma correcta)
+        assertNotNull(resultado, "El resultado no debería ser nulo");
+        assertEquals(1L, resultado.getId(), "El ID debería ser 1L");
+        assertEquals(50, resultado.getCantidad());
+        assertEquals("Alimentos", resultado.getTipo());
+
+        // Verificar que el repositorio guardó los datos exactamente 1 vez
+        verify(donationRepositoryPattern, times(1)).save(any(DonationModel.class));
     }
-
-        public DonationModel crear(DonationModel donation, String email, String role) {
-                if (donation.getCantidad() == null || donation.getCantidad() <= 0) {
-                        throw new BadRequestException("Cantidad inválida");
-                }
-                if (donation.getTipo() == null || donation.getTipo().isBlank()) {
-                        throw new BadRequestException("Tipo inválido");
-                }
-
-                if (role == null || role.isBlank()) {
-                        throw new BadRequestException("Rol inválido");
-                }
-
-                
-                if ("USER".equalsIgnoreCase(role.trim()) && (donation.getNeedId() == null || donation.getNeedId().isBlank())) {
-                        throw new BadRequestException("Debe seleccionar una necesidad para donar");
-                }
-
-                NeedDTO need = null;
-                if (donation.getNeedId() != null && !donation.getNeedId().isBlank()) {
-                        need = needsClient.getNeedById(donation.getNeedId(), email, role);
-                        validateNeedMatchesDonation(donation, need);
-
-                        
-                        String derivedAddress = (need.getAddress() == null || need.getAddress().isBlank())
-                                ? need.getCenterName()
-                                : need.getAddress();
-                        donation.setDireccion(derivedAddress);
-                }
-
-                if (email != null && !email.isBlank()) {
-                        donation.setDonorEmail(email.trim());
-                }
-
-                DonationModel saved = repository.save(donation);
-
-                if (need != null) {
-                        try {
-                                needsClient.receiveDonation(donation.getNeedId(), donation.getCantidad(), email, role);
-                        } catch (RuntimeException ex) {
-                                repository.delete(saved);
-                                throw ex;
-                        }
-                }
-
-                if (donation.getNeedId() != null && !donation.getNeedId().isBlank()) {
-                        try {
-                                logisticsClient.crearEnvio(saved.getId(), email, role);
-                        } catch (RuntimeException ex) {
-                                if (need != null) {
-                                        try {
-                                                needsClient.rollbackReceive(donation.getNeedId(), donation.getCantidad());
-                                        } catch (RuntimeException ignored) {
-                                                
-                                        }
-                                }
-                                repository.delete(saved);
-                                throw new BadRequestException("No se pudo registrar el envío en acopio: " + ex.getMessage());
-                        }
-                }
-
-                return saved;
-        }
-
-    public List<DonationModel> listar() {
-        return repository.findAll();
-    }
-
-    public DonationModel buscarPorId(Long id) {
-
-        return repository.findById(id)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException(
-                                "Donación no encontrada"
-                        )
-                );
-    }
-
-    public DonationModel actualizar(Long id, DonationModel donation) {
-        DonationModel existente = buscarPorId(id);
-        existente.setDescripcion(donation.getDescripcion());
-        existente.setCantidad(donation.getCantidad());
-        existente.setTipo(donation.getTipo());
-        existente.setDireccion(donation.getDireccion());
-        if (donation.getNeedId() != null) {
-            existente.setNeedId(donation.getNeedId());
-        }
-        return repository.save(existente);
-    }
-
-    public void eliminar(Long id) {
-                DonationModel existente = buscarPorId(id);
-                repository.delete(existente);
-    }
-
-        private void validateNeedMatchesDonation(DonationModel donation, NeedDTO need) {
-                if (need == null) {
-                        throw new BadRequestException("Necesidad inválida");
-                }
-
-                String needCategory = need.getCategory() == null ? "" : need.getCategory().trim();
-                if (!needCategory.equalsIgnoreCase(donation.getTipo().trim())) {
-                        throw new BadRequestException("El tipo de donación no coincide con la necesidad");
-                }
-
-                double required = need.getQuantityRequired() == null ? 0.0 : need.getQuantityRequired();
-                double received = need.getQuantityReceived() == null ? 0.0 : need.getQuantityReceived();
-                double remaining = required - received;
-                if (donation.getCantidad() > remaining) {
-                        throw new BadRequestException("La cantidad supera lo requerido por la necesidad");
-                }
-        }
 }
