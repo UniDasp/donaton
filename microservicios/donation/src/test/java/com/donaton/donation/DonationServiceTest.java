@@ -21,12 +21,12 @@ public class DonationServiceTest {
     @Test
     public void testCrearDonacionBasicaExitoso() {
         DonationModel donationInput = new DonationModel();
-        donationInput.setCantidad(50.0); // Corregido: tipo Double
+        donationInput.setCantidad(50.0);
         donationInput.setTipo("Alimentos");
 
         DonationModel donationMockSaved = new DonationModel();
         donationMockSaved.setId(1L);
-        donationMockSaved.setCantidad(50.0); // Corregido: tipo Double
+        donationMockSaved.setCantidad(50.0);
         donationMockSaved.setTipo("Alimentos");
 
         when(donationRepositoryPattern.save(any(DonationModel.class))).thenReturn(donationMockSaved);
@@ -35,7 +35,7 @@ public class DonationServiceTest {
 
         assertNotNull(resultado);
         assertEquals(1L, resultado.getId());
-        assertEquals(50.0, resultado.getCantidad()); // Corregido: tipo Double
+        assertEquals(50.0, resultado.getCantidad());
         assertEquals("Alimentos", resultado.getTipo());
 
         verify(donationRepositoryPattern, times(1)).save(any(DonationModel.class));
