@@ -3,7 +3,7 @@ package com.donaton.donation.controller;
 import com.donaton.donation.dto.DonationRequestDTO;
 import com.donaton.donation.dto.DonationResponseDTO;
 import com.donaton.donation.mapper.DonationMapper;
-import com.donaton.donation.service.DonationService; // Import correcto
+import com.donaton.donation.service.DonationService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequestMapping("/donations")
 public class DonationController {
 
-    private final DonationService service; // Corregido: Ya no apunta a controller
+    private final DonationService service;
 
     public DonationController(DonationService service) {
         this.service = service;
