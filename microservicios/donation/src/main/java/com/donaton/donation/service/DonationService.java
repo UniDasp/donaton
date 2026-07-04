@@ -25,6 +25,8 @@ public class DonationService {
     }
 
     public void eliminar(Long id) {
-        // Lógica de eliminación simulada
+        /* 
+            TODO / WIP      
+        */
     }
 }
