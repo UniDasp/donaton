@@ -11,6 +11,7 @@ import com.donaton.auth.model.User;
 import com.donaton.auth.repository.UserRepositoryPattern;
 import com.donaton.auth.security.IJwtService;
 import com.donaton.auth.service.UserService;
+import com.donaton.auth.security.JwtService;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
