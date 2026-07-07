@@ -1,4 +1,5 @@
 package com.donaton.auth.security;
+import com.donaton.auth.security.IJwtService;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -10,14 +11,6 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
-public interface IJwtService {
-    String generateAccessToken(String email, String role);
-    String generateRefreshToken(String email, String role);
-    boolean isRefreshToken(String token);
-    String extractEmail(String token);
-    String extractRole(String token);
-    String extractTokenType(String token);
-}
 
 @Service
 public class JwtService implements IJwtService {
