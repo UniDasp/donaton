@@ -13,6 +13,7 @@ import com.donaton.logistics.model.EnvioEstado;
 import com.donaton.logistics.model.LogisticsEnvio;
 import com.donaton.logistics.repository.EnvioRepositoryPattern;
 import com.donaton.logistics.service.EnvioService;
+import org.junit.jupiter.api.Disabled;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -191,7 +192,7 @@ public class EnvioServiceTest {
 
         assertEquals("Desde pendiente_acopio solo puede pasar a recibida", exception.getMessage());
     }
-    
+
     @Disabled("Pendiente de corregir")
     @Test
     public void testMarcarInexistentesVencidos() {
