@@ -9,7 +9,7 @@ import com.donaton.auth.dto.UserSummaryDTO;
 import com.donaton.auth.model.Role;
 import com.donaton.auth.model.User;
 import com.donaton.auth.repository.UserRepositoryPattern;
-import com.donaton.auth.security.JwtService;
+import com.donaton.auth.security.IJwtService;
 import com.donaton.auth.service.UserService;
 
 import org.junit.jupiter.api.Test;

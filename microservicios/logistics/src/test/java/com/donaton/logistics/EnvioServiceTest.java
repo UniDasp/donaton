@@ -14,9 +14,9 @@ import com.donaton.logistics.model.LogisticsEnvio;
 import com.donaton.logistics.repository.EnvioRepositoryPattern;
 import com.donaton.logistics.service.EnvioService;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -36,8 +36,12 @@ public class EnvioServiceTest {
     @Mock
     private NeedsClient needsClient;
 
-    @InjectMocks
     private EnvioService envioService;
+
+    @BeforeEach
+    public void setUp() {
+        envioService = new EnvioService(repository, donationClient, needsClient, 3);
+    }
 
     @Test
     public void testCrearEnvioExitoso() {
