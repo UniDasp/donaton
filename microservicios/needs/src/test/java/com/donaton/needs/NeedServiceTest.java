@@ -159,8 +159,14 @@ public class NeedServiceTest {
 
     @Test
     public void testUpdateAddressVacioDebeFallar() {
+        NeedEntity existente = new NeedEntity();
+        existente.setId("need123");
+        existente.setAddress("Calle Vieja");
+
         NeedEntity actualizacion = new NeedEntity();
         actualizacion.setAddress("");
+
+        when(repository.findById("need123")).thenReturn(Optional.of(existente));
 
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
             needService.update("need123", actualizacion);
