@@ -1,4 +1,5 @@
 package com.donaton.auth.security;
+import com.donaton.auth.security.IJwtService;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -10,8 +11,9 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
+
 @Service
-public class JwtService {
+public class JwtService implements IJwtService {
 
     @Value("${jwt.secret:mi_clave_secreta_muy_larga_para_hs256_segura_12345}")
     private String secretKey;
@@ -29,18 +31,22 @@ public class JwtService {
         return Keys.hmacShaKeyFor(secretKey.getBytes(StandardCharsets.UTF_8));
     }
 
+    @Override
     public String generateAccessToken(String email, String role) {
         return generateToken(email, role, TOKEN_TYPE_ACCESS, accessExpirationMs);
     }
 
+    @Override
     public String generateRefreshToken(String email, String role) {
         return generateToken(email, role, TOKEN_TYPE_REFRESH, refreshExpirationMs);
     }
 
+    @Override
     public boolean isRefreshToken(String token) {
         return TOKEN_TYPE_REFRESH.equals(extractTokenType(token));
     }
 
+    @Override
     public String extractEmail(String token) {
         return Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -50,6 +56,7 @@ public class JwtService {
                 .getSubject();
     }
 
+    @Override
     public String extractRole(String token) {
         Object role = Jwts.parser()
                 .verifyWith(getSigningKey())
@@ -60,6 +67,7 @@ public class JwtService {
         return role == null ? null : role.toString();
     }
 
+    @Override
     public String extractTokenType(String token) {
         Object tokenType = Jwts.parser()
                 .verifyWith(getSigningKey())

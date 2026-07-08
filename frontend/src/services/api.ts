@@ -122,7 +122,6 @@ async function fetchWithAuth(
     return response;
   }
 
-  // Reintento si el token existía pero no se envió (carrera tras login)
   if (!headers.has('Authorization')) {
     const token = getAccessToken();
     if (token) {
