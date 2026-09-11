@@ -37,7 +37,7 @@ public class DonationService {
                 }
 
                 if (role == null || role.isBlank()) {
-                        throw new BadRequestException("Rol inválido");
+                        role = "USER";
                 }
 
                 

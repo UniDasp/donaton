@@ -8,6 +8,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -67,8 +69,9 @@ public class NeedsClient {
 
     private HttpHeaders buildHeaders(String email, String role) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Email", email);
-        headers.add("X-User-Role", role);
+        addHeaderIfPresent(headers, "X-User-Email", email);
+        addHeaderIfPresent(headers, "X-User-Role", role);
+        copyIncomingHeader(headers, "Authorization");
         return headers;
     }
 
@@ -76,6 +79,24 @@ public class NeedsClient {
         HttpHeaders headers = new HttpHeaders();
         headers.add("X-User-Email", "donation@donaton.internal");
         headers.add("X-User-Role", "ADMIN");
+        copyIncomingHeader(headers, "Authorization");
         return headers;
+    }
+
+    private void copyIncomingHeader(HttpHeaders target, String name) {
+        ServletRequestAttributes attributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes == null) {
+            return;
+        }
+
+        String value = attributes.getRequest().getHeader(name);
+        addHeaderIfPresent(target, name, value);
+    }
+
+    private void addHeaderIfPresent(HttpHeaders headers, String name, String value) {
+        if (value != null && !value.isBlank()) {
+            headers.set(name, value);
+        }
     }
 }

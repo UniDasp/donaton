@@ -8,6 +8,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @Component
 public class DonationClient {
@@ -33,8 +35,30 @@ public class DonationClient {
 
     private HttpHeaders buildHeaders(String email, String role) {
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-User-Email", email);
-        headers.add("X-User-Role", role);
+        addHeaderIfPresent(headers, "X-User-Email", email);
+        addHeaderIfPresent(headers, "X-User-Role", role);
+
+        ServletRequestAttributes attributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attributes != null) {
+            var request = attributes.getRequest();
+            copyHeader(request, headers, "Authorization");
+            copyHeader(request, headers, "X-User-Email");
+            copyHeader(request, headers, "X-User-Role");
+        }
+
         return headers;
+    }
+
+    private void copyHeader(jakarta.servlet.http.HttpServletRequest request,
+                            HttpHeaders headers,
+                            String name) {
+        addHeaderIfPresent(headers, name, request.getHeader(name));
+    }
+
+    private void addHeaderIfPresent(HttpHeaders headers, String name, String value) {
+        if (value != null && !value.isBlank()) {
+            headers.set(name, value);
+        }
     }
 }

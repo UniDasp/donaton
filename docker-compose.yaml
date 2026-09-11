@@ -17,6 +17,8 @@ x-spring-env: &spring-env
     -XX:TieredStopAtLevel=1
     -XX:+UseContainerSupport
     -XX:MaxRAMPercentage=75
+  AZURE_TENANT_ID: ${AZURE_TENANT_ID:-common}
+  AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-dummy-client-id}
 
 services:
   postgres:
@@ -134,7 +136,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      JWT_SECRET: mi_clave_secreta_muy_larga_para_hs256_segura_12345
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-common}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-dummy-client-id}
     depends_on:
       auth:
         condition: service_started
@@ -156,6 +159,8 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_APPLICATION_NAME: bff
       SPRING_CONFIG_NAME: properties
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID:-common}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID:-dummy-client-id}
     depends_on:
       auth:
         condition: service_started

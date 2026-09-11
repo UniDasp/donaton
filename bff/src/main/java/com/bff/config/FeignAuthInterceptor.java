@@ -2,12 +2,14 @@ package com.bff.config;
 
 import feign.RequestInterceptor;
 import feign.RequestTemplate;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -28,32 +30,70 @@ public class FeignAuthInterceptor implements RequestInterceptor {
             return;
         }
 
+        ServletRequestAttributes attributes =
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        HttpServletRequest request = attributes == null ? null : attributes.getRequest();
+
+        boolean hasEmailHeader = request != null
+            && copyHeader(request, template, "X-User-Email");
+        boolean hasRoleHeader = request != null
+            && copyHeader(request, template, "X-User-Role");
+        if (request != null) {
+            copyHeader(request, template, "Authorization");
+        }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null) {
             log.debug("[FEIGN] Sin autenticación en SecurityContext");
             return;
         }
 
-        if (authentication instanceof UsernamePasswordAuthenticationToken upAuth) {
-            String email = (String) upAuth.getPrincipal();
-            if (email != null && !email.isBlank()) {
-                template.header("X-User-Email", email);
-                log.debug("[FEIGN] Propagando X-User-Email: {} a {}", email, path);
+        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
+            if (!hasEmailHeader) {
+                String email = extractEmail(jwtAuth);
+                if (email != null) {
+                    template.header("X-User-Email", email);
+                    log.debug("[FEIGN] Propagando X-User-Email: {} a {}", email, path);
+                }
             }
 
-            String role = extractRoleFromAuthorities(upAuth);
-            if (role != null && !role.isBlank()) {
-                template.header("X-User-Role", role);
-                log.debug("[FEIGN] Propagando X-User-Role: {} a {}", role, path);
+            if (!hasRoleHeader) {
+                String role = extractRoleFromAuthorities(authentication);
+                if (role != null) {
+                    template.header("X-User-Role", role);
+                    log.debug("[FEIGN] Propagando X-User-Role: {} a {}", role, path);
+                }
             }
         }
     }
 
-    private String extractRoleFromAuthorities(UsernamePasswordAuthenticationToken authentication) {
+    private String extractEmail(JwtAuthenticationToken authentication) {
+        String[] emailClaims = {"preferred_username", "email", "unique_name"};
+        for (String claim : emailClaims) {
+            String value = authentication.getToken().getClaimAsString(claim);
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
+    }
+
+    private boolean copyHeader(HttpServletRequest request, RequestTemplate template, String name) {
+        String value = request.getHeader(name);
+        if (value != null && !value.isBlank()) {
+            template.header(name, value);
+            return true;
+        }
+        return false;
+    }
+
+    private String extractRoleFromAuthorities(Authentication authentication) {
         return authentication.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
+            .map(authority -> authority.getAuthority())
+                .filter(auth -> auth != null && !auth.isBlank())
                 .filter(auth -> auth.startsWith("ROLE_"))
                 .map(auth -> auth.substring(5))
+                .filter(role -> !role.isBlank())
                 .findFirst()
                 .orElse(null);
     }

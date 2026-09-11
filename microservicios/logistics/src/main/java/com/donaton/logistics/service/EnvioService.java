@@ -10,6 +10,8 @@ import com.donaton.logistics.model.EnvioEstado;
 import com.donaton.logistics.model.LogisticsEnvio;
 import com.donaton.logistics.repository.EnvioRepositoryPattern;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ import java.util.Locale;
 
 @Service
 public class EnvioService {
+
+    private static final Logger log = LoggerFactory.getLogger(EnvioService.class);
 
     private final EnvioRepositoryPattern repository;
     private final DonationClient donationClient;
@@ -40,44 +44,58 @@ public class EnvioService {
 
     @Transactional
     public LogisticsEnvio crearEnvio(Long donacionId, String email, String role) {
-        if (donacionId == null) {
-            throw new BadRequestException("donacionId es obligatorio");
+        try {
+            if (donacionId == null) {
+                throw new BadRequestException("donacionId es obligatorio");
+            }
+
+            if (repository.findByDonacionId(donacionId).isPresent()) {
+                throw new BadRequestException("Ya existe un envío para esta donación");
+            }
+
+            DonationDTO donation = donationClient.getDonationById(donacionId, email, role);
+            if (donation == null) {
+                throw new BadRequestException(
+                        "No se pudo obtener la donación desde donation-service");
+            }
+
+            String needId = donation.getNeedId();
+            if (needId == null || needId.isBlank()) {
+                throw new BadRequestException("La donación debe estar vinculada a una necesidad");
+            }
+
+            NeedDTO need = needsClient.getNeedById(needId, email, role);
+            if (need == null) {
+                throw new BadRequestException("Necesidad no encontrada");
+            }
+
+            String destino = resolveDestino(donation, need);
+            String centerId = need.getCenterId() == null || need.getCenterId().isBlank()
+                    ? "sin-centro"
+                    : need.getCenterId().trim();
+            String centerName = need.getCenterName() == null || need.getCenterName().isBlank()
+                    ? "Centro de acopio"
+                    : need.getCenterName().trim();
+            Instant now = Instant.now();
+
+            LogisticsEnvio envio = LogisticsEnvio.builder()
+                    .donacionId(donacionId)
+                    .needId(needId.trim())
+                    .direccion(destino)
+                    .acopioCenterId(centerId)
+                    .acopioCenterName(centerName)
+                    .estado(EnvioEstado.PENDIENTE_ACOPIO)
+                    .createdAt(now)
+                    .acopioDeadline(now.plus(acopioDeadlineDays, ChronoUnit.DAYS))
+                    .cantidadDonada(donation.getCantidad())
+                    .build();
+
+            return repository.save(envio);
+        } catch (RuntimeException exception) {
+            log.error("Error al procesar la creación de envío para donacionId={}",
+                    donacionId, exception);
+            throw exception;
         }
-
-        if (repository.findByDonacionId(donacionId).isPresent()) {
-            throw new BadRequestException("Ya existe un envío para esta donación");
-        }
-
-        DonationDTO donation = donationClient.getDonationById(donacionId, email, role);
-        if (donation == null) {
-            throw new BadRequestException("Donación no encontrada");
-        }
-
-        if (donation.getNeedId() == null || donation.getNeedId().isBlank()) {
-            throw new BadRequestException("La donación debe estar vinculada a una necesidad");
-        }
-
-        NeedDTO need = needsClient.getNeedById(donation.getNeedId(), email, role);
-        if (need == null) {
-            throw new BadRequestException("Necesidad no encontrada");
-        }
-
-        String destino = resolveDestino(donation, need);
-        Instant now = Instant.now();
-
-        LogisticsEnvio envio = LogisticsEnvio.builder()
-                .donacionId(donacionId)
-                .needId(donation.getNeedId())
-                .direccion(destino)
-                .acopioCenterId(need.getCenterId() == null ? "sin-centro" : need.getCenterId())
-                .acopioCenterName(need.getCenterName() == null ? "Centro de acopio" : need.getCenterName())
-                .estado(EnvioEstado.PENDIENTE_ACOPIO)
-                .createdAt(now)
-                .acopioDeadline(now.plus(acopioDeadlineDays, ChronoUnit.DAYS))
-                .cantidadDonada(donation.getCantidad())
-                .build();
-
-        return repository.save(envio);
     }
 
     public List<LogisticsEnvio> listar(String acopioCenterId) {
