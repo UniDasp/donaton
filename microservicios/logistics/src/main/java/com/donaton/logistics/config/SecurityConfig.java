@@ -1,7 +1,7 @@
 package com.donaton.logistics.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -22,7 +22,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import java.util.List;
 
 @Configuration
-@ConditionalOnProperty(name = "spring.security.oauth2.resourceserver.jwt.issuer-uri")
+@ConditionalOnExpression("'${AZURE_TENANT_ID:common}' != 'common' and '${AZURE_CLIENT_ID:test-client-id}' != 'test-client-id'")
 public class SecurityConfig {
 
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
